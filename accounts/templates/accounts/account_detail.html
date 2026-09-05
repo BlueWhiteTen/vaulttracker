@@ -1,0 +1,352 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ account.name }} — Vault{% endblock %}
+{% block topbar_title %}{{ account.name }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .detail-grid .full { grid-column: 1 / -1; }
+    .sort-btn { background: none; border: none; cursor: pointer; font-family: "DM Mono", monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+    .sort-btn:hover { color: var(--ink); }
+    .sort-btn.active { color: var(--ink); font-weight: 600; }
+    .balance-mono { font-family: "DM Mono", monospace; font-size: 14px; }
+    .bulk-add-row { display: grid; grid-template-columns: 1fr 1fr 36px; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .add-row-btn { background: none; border: 1px dashed var(--border); color: var(--muted); padding: 7px 14px; font-family: "Instrument Sans", sans-serif; font-size: 13px; cursor: pointer; width: 100%; text-align: left; margin-bottom: 14px; transition: all 0.2s; }
+    .add-row-btn:hover { border-color: var(--gold); color: var(--ink); }
+    .delete-tx-btn { background: none; border: 1px solid var(--border); color: var(--muted); width: 28px; height: 28px; cursor: pointer; font-size: 14px; transition: all 0.15s; }
+    .delete-tx-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+    @media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <a href="{% url "myaccounts" %}" style="font-size: 13px; color: var(--muted); text-decoration: none;">
+        ← {% trans "Back to Dashboard" %}
+    </a>
+</div>
+
+<div class="kpi-grid" style="margin-bottom: 28px; grid-template-columns: repeat(4, 1fr);">
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Account" %}</div>
+        <div class="kpi-value" style="font-size: 22px;">{{ account.name }}</div>
+        <div class="kpi-sub">{{ account.currency }}</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Current Balance" %}</div>
+        <div class="kpi-value {% if account.account_type == 'debt' %}text-red{% else %}text-green{% endif %}">
+            {{ account_symbol }}{{ current_balance|floatformat:2 }}
+            {% if pct_change is not None %}
+                {% if account.account_type == 'debt' %}
+                    {% if pct_change >= 0 %}
+                        <span style="font-size:14px; color:var(--red);">↑ {{ pct_change|floatformat:1 }}%</span>
+                    {% else %}
+                        <span style="font-size:14px; color:var(--green);">↓ {{ pct_change|floatformat:1 }}%</span>
+                    {% endif %}
+                {% else %}
+                    {% if pct_change >= 0 %}
+                        <span style="font-size:14px; color:var(--green);">↑ {{ pct_change|floatformat:1 }}%</span>
+                    {% else %}
+                        <span style="font-size:14px; color:var(--red);">↓ {{ pct_change|floatformat:1 }}%</span>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="kpi-sub">{% trans "vs first entry" %} {{ account_symbol }}{{ first_balance|floatformat:2 }}</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Transactions" %}</div>
+        <div class="kpi-value">{{ transaction_count }}</div>
+        <div class="kpi-sub">{% trans "recorded entries" %}</div>
+    </div>
+    {% if account.target %}
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Target" %}</div>
+        <div class="kpi-value text-gold">{{ account_symbol }}{{ account.target|floatformat:0 }}</div>
+        <div style="margin-top:8px;">
+            <div style="height:6px; background:var(--cream); border-radius:0; overflow:hidden;">
+                {% if account.account_type == 'debt' %}
+                    <div style="height:100%; background:var(--green); width:{% widthratio current_balance account.target 100 %}%;"></div>
+                {% else %}
+                    <div style="height:100%; background:var(--gold); width:{% widthratio current_balance account.target 100 %}%;"></div>
+                {% endif %}
+            </div>
+            <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-top:4px;">
+                {% if account.account_type == 'debt' %}
+                    {{ account_symbol }}{{ current_balance|floatformat:2 }} {% trans "remaining" %}
+                {% else %}
+                    {% widthratio current_balance account.target 100 %}% {% trans "achieved" %} · {{ account_symbol }}{% widthratio account.target current_balance 1 %} {% trans "to go" %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Account Type" %}</div>
+        <select id="accountTypeSelect" class="form-control" style="padding:4px 8px; font-size:12px; margin-top:4px;">
+            <option value="savings" {% if account.account_type == "savings" %}selected{% endif %}>💰 Savings</option>
+            <option value="investment" {% if account.account_type == "investment" %}selected{% endif %}>📈 Investment</option>
+            <option value="property" {% if account.account_type == "property" %}selected{% endif %}>🏠 Property</option>
+            <option value="pension" {% if account.account_type == "pension" %}selected{% endif %}>🏦 Pension</option>
+            <option value="debt" {% if account.account_type == "debt" %}selected{% endif %}>💳 Debt/Mortgage</option>
+            <option value="asset" {% if account.account_type == "asset" %}selected{% endif %}>🚗 Asset</option>
+            <option value="other" {% if account.account_type == "other" %}selected{% endif %}>📁 Other</option>
+        </select>
+        <div class="kpi-sub" id="typeStatus">{% trans "changes instantly" %}</div>
+    </div>
+</div>
+
+<div class="detail-grid">
+
+    <div class="card full">
+        <div class="card-title">{% trans "Balance History" %}</div>
+        <div style="position: relative; width: 100%; height: 260px;">
+            <canvas id="accountChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card full">
+        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>{% trans "Transaction History" %}</span>
+            <span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);">{% trans "Click columns to sort" %}</span>
+        </div>
+        {% if transactions %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>
+                        <a href="?sort=date&dir={% if sort_by == "date" and sort_dir == "asc" %}desc{% else %}asc{% endif %}" class="sort-btn {% if sort_by == "date" %}active{% endif %}">
+                            {% trans "Date" %} {% if sort_by == "date" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?sort=balance&dir={% if sort_by == "balance" and sort_dir == "asc" %}desc{% else %}asc{% endif %}" class="sort-btn {% if sort_by == "balance" %}active{% endif %}">
+                            {% trans "Balance" %} {% if sort_by == "balance" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                        </a>
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tx-body">
+                {% for tx in transactions %}
+                <tr class="tx-row" {% if forloop.counter > 10 %}style="display:none;"{% endif %}>
+                    <td style="color: var(--muted); font-size: 13px;">{{ tx.date|date:"d M Y" }}</td>
+                    <td class="balance-mono">{{ account_symbol }}{{ tx.balance|floatformat:2 }}</td>
+                    <td style="color:var(--muted); font-size:12px;">{{ tx.notes }}</td>
+                    <td>
+                        <button class="delete-tx-btn delete-tx" data-tx-id="{{ tx.id }}">×</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div id="show-more-wrap" style="text-align:center; margin-top:14px; display:none;">
+            <button id="show-more-btn" class="btn btn-ghost btn-sm">{% trans "Show more" %} ↓</button>
+        </div>
+        {% else %}
+        <p style="color: var(--muted); font-size: 14px; padding: 20px 0;">{% trans "No transactions yet." %}</p>
+        {% endif %}
+    </div>
+
+    <div class="card full">
+        <div class="card-title">{% trans "Add Transactions" %}</div>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr 36px; gap:8px; margin-bottom:6px;">
+                <div class="form-label" style="margin:0;">{% trans "Date" %}</div>
+                <div class="form-label" style="margin:0;">{% trans "Balance" %} ({{ account_symbol }}{{ account.currency }})</div>
+                <div class="form-label" style="margin:0;">{% trans "Notes" %} ({% trans "optional" %})</div>
+                <div></div>
+            </div>
+            <div id="tx-rows">
+                <div class="bulk-add-row" style="display:grid; grid-template-columns:1fr 1fr 1fr 36px; gap:8px; margin-bottom:8px;">
+                    <input type="date" name="dates[]" class="form-control" id="first-date" />
+                    <input type="number" name="balances[]" class="form-control" step="0.01" min="0" placeholder="0.00" />
+                    <input type="text" name="notes[]" class="form-control" placeholder="e.g. salary…" />
+                    <div></div>
+                </div>
+            </div>
+            <button type="button" id="add-tx-row" class="add-row-btn">+ {% trans "Add another entry" %}</button>
+            <button type="submit" class="btn btn-primary">{% trans "Save transactions" %} →</button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+// ── Update account type via AJAX ──
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("accountTypeSelect");
+    const status = document.getElementById("typeStatus");
+    if (!select) return;
+
+    select.addEventListener("change", function () {
+        const formData = new FormData();
+        formData.append("name", "{{ account.name }}");
+        formData.append("account_type", this.value);
+        formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+        status.textContent = "Saving...";
+
+        fetch("/rename_account/{{ account.id }}/", {
+            method: "POST",
+            body: formData
+        })
+        .then(r => {
+            if (r.ok || r.redirected) {
+                status.textContent = "✓ Saved";
+                setTimeout(() => status.textContent = "{% trans 'changes instantly' %}", 2000);
+            } else {
+                status.textContent = "Error saving";
+            }
+        })
+        .catch(() => status.textContent = "Error saving");
+    });
+});
+
+// ── Update account type via AJAX ──
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("accountTypeSelect");
+    const status = document.getElementById("typeStatus");
+    if (!select) return;
+
+    select.addEventListener("change", function () {
+        const formData = new FormData();
+        formData.append("name", "{{ account.name }}");
+        formData.append("account_type", this.value);
+        formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+        status.textContent = "Saving...";
+
+        fetch("/rename_account/{{ account.id }}/", {
+            method: "POST",
+            body: formData
+        })
+        .then(r => {
+            if (r.ok || r.redirected) {
+                status.textContent = "✓ Saved";
+                setTimeout(() => status.textContent = "{% trans 'changes instantly' %}", 2000);
+            } else {
+                status.textContent = "Error saving";
+            }
+        })
+        .catch(() => status.textContent = "Error saving");
+    });
+});
+
+// ── Show more transactions ──
+document.addEventListener("DOMContentLoaded", function () {
+    const rows = document.querySelectorAll(".tx-row");
+    const wrap = document.getElementById("show-more-wrap");
+    const btn = document.getElementById("show-more-btn");
+    if (rows.length > 10 && wrap) wrap.style.display = "block";
+    if (btn) btn.addEventListener("click", function () {
+        rows.forEach(row => row.style.display = "");
+        wrap.style.display = "none";
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("first-date").value = today;
+
+    const MAX = 10;
+    const container = document.getElementById("tx-rows");
+    const addBtn = document.getElementById("add-tx-row");
+
+    addBtn.addEventListener("click", function () {
+        if (container.querySelectorAll(".bulk-add-row").length >= MAX) {
+            addBtn.textContent = "Max 10 entries";
+            addBtn.style.opacity = "0.4";
+            return;
+        }
+        const row = document.createElement("div");
+        row.className = "bulk-add-row";
+        row.innerHTML = `
+            <input type="date" name="dates[]" class="form-control" value="${today}" />
+            <input type="number" name="balances[]" class="form-control" step="0.01" min="0" placeholder="0.00" />
+            <button type="button" onclick="this.closest('.bulk-add-row').remove()" class="delete-tx-btn">x</button>
+        `;
+        container.appendChild(row);
+    });
+
+    document.querySelectorAll(".delete-tx").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.txId;
+            if (confirm("{% trans 'Delete this transaction?' %}")) {
+                fetch("/delete_transaction/" + id + "/", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/json" }
+                })
+                .then(r => r.json())
+                .then(data => { if (data.success) location.reload(); })
+                .catch(e => console.error(e));
+            }
+        });
+    });
+
+    try {
+        var data = JSON.parse('{{ chart_data_json|escapejs }}');
+        if (!data.length) return;
+        var ctx = document.getElementById("accountChart").getContext("2d");
+        const points = data.map(d => ({ x: new Date(d.date), y: d.balance }));
+        const maxVal = Math.max(...points.map(p => p.y));
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                datasets: [{
+                    label: "{{ account.name }}",
+                    data: points,
+                    borderColor: "#1a6b4a",
+                    backgroundColor: "rgba(26,107,74,0.08)",
+                    borderWidth: 2,
+                    pointRadius: points.map(p => p.y === maxVal ? 8 : 3),
+                    pointBackgroundColor: points.map(p => p.y === maxVal ? "#fff" : "#1a6b4a"),
+                    pointBorderColor: "#1a6b4a",
+                    pointBorderWidth: points.map(p => p.y === maxVal ? 3 : 1),
+                    tension: 0.3, fill: true
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    annotation: {
+                        annotations: {
+                            {% if account.target %}
+                            targetLine: {
+                                type: "line",
+                                yMin: {{ account.target|floatformat:2 }},
+                                yMax: {{ account.target|floatformat:2 }},
+                                borderColor: "#c9a84c",
+                                borderWidth: 2,
+                                borderDash: [6, 3],
+                                label: {
+                                    display: true,
+                                    content: "Target: {{ account_symbol }}{{ account.target|floatformat:0 }}",
+                                    position: "end",
+                                    backgroundColor: "rgba(201,168,76,0.15)",
+                                    color: "#c9a84c",
+                                    font: { family: "DM Mono", size: 11 }
+                                }
+                            }
+                            {% endif %}
+                        }
+                    }
+                },
+                scales: {
+                    x: { type: "time", time: { unit: "month", tooltipFormat: "dd MMM yyyy" }, grid: { color: "rgba(0,0,0,0.05)" }, ticks: { font: { family: "DM Mono", size: 11 }, color: "#7a7369" } },
+                    y: { beginAtZero: true, grid: { color: "rgba(0,0,0,0.05)" }, ticks: { font: { family: "DM Mono", size: 11 }, color: "#7a7369", callback: v => "{{ account_symbol }}" + v.toLocaleString() } }
+                }
+            }
+        });
+    } catch(e) { console.error(e); }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,363 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Login" %} — Vault</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+    :root { --ink: #0e0e0e; --gold: #c9a84c; --green: #1a6b4a; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: 'Instrument Sans', sans-serif;
+        background: var(--ink);
+        color: #fff;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .bg-glow {
+        position: absolute; inset: 0;
+        background:
+            radial-gradient(ellipse 80% 60% at 20% 80%, rgba(201,168,76,0.12) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 80% at 80% 20%, rgba(26,107,74,0.1) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 40% at 50% 50%, rgba(201,168,76,0.04) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .bg-grid {
+        position: absolute; inset: 0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+        background-size: 48px 48px;
+        pointer-events: none;
+    }
+    .bg-numbers {
+        position: absolute; inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+    .bg-numbers span {
+        position: absolute;
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        color: rgba(201,168,76,0.08);
+        letter-spacing: 0.1em;
+    }
+
+    .layout {
+        position: relative;
+        display: flex;
+        width: 800px;
+        min-height: 500px;
+        border: 1px solid rgba(255,255,255,0.09);
+        animation: fadeUp 0.5s ease both;
+    }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-left {
+        width: 300px;
+        flex-shrink: 0;
+        background: rgba(201,168,76,0.06);
+        border-right: 1px solid rgba(255,255,255,0.07);
+        padding: 48px 36px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .panel-left .logo {
+        font-family: 'DM Serif Display', serif;
+        font-size: 40px;
+        color: #fff;
+        letter-spacing: -1px;
+        line-height: 1;
+    }
+    .panel-left .logo span { color: var(--gold); }
+    .panel-left .tagline {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.3);
+        margin-top: 8px;
+    }
+    .features {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-top: 40px;
+    }
+    .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .feature-icon {
+        width: 32px; height: 32px;
+        background: rgba(201,168,76,0.1);
+        border: 1px solid rgba(201,168,76,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .feature-text .f-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 2px;
+    }
+    .feature-text .f-desc {
+        font-size: 11px;
+        color: rgba(255,255,255,0.35);
+        line-height: 1.4;
+    }
+    .panel-left-footer {
+        font-family: 'DM Mono', monospace;
+        font-size: 9px;
+        color: rgba(255,255,255,0.15);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-top: 40px;
+    }
+
+    .panel-right {
+        flex: 1;
+        background: rgba(255,255,255,0.02);
+        padding: 48px 44px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .form-heading {
+        font-family: 'DM Serif Display', serif;
+        font-size: 26px;
+        color: #fff;
+        letter-spacing: -0.3px;
+        margin-bottom: 6px;
+    }
+    .form-sub {
+        font-size: 13px;
+        color: rgba(255,255,255,0.35);
+        margin-bottom: 32px;
+    }
+    .error-msg {
+        background: rgba(139,46,46,0.2);
+        border: 1px solid rgba(139,46,46,0.4);
+        color: #e07070;
+        padding: 10px 14px;
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+    .field { margin-bottom: 18px; }
+    .field label {
+        display: block;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.55);
+        margin-bottom: 7px;
+    }
+    .field input {
+        width: 100%;
+        background: rgba(255,255,255,0.055);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        -webkit-text-fill-color: #fff;
+        padding: 12px 15px;
+        font-family: 'Instrument Sans', sans-serif;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--gold); }
+    .field input::placeholder {
+        color: rgba(255,255,255,0.2);
+        -webkit-text-fill-color: rgba(255,255,255,0.2);
+    }
+    .btn-submit {
+        width: 100%;
+        background: var(--gold);
+        color: var(--ink);
+        border: none;
+        padding: 13px;
+        font-family: 'Instrument Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        letter-spacing: 0.04em;
+        transition: opacity 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+    }
+    .divider span {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        color: rgba(255,255,255,0.2);
+        letter-spacing: 0.1em;
+    }
+    .bottom-link {
+        text-align: center;
+        font-size: 13px;
+        color: rgba(255,255,255,0.4);
+    }
+    .bottom-link a { color: var(--gold); text-decoration: none; }
+    .bottom-link a:hover { text-decoration: underline; }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+        -webkit-text-fill-color: #fff !important;
+        -webkit-box-shadow: 0 0 0px 1000px rgba(20,20,20,0.95) inset !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    @media (max-width: 680px) {
+        .layout { flex-direction: column; width: 95vw; }
+        .panel-left { width: 100%; padding: 32px 28px; }
+        .features { display: none; }
+        .panel-right { padding: 32px 28px; }
+    }
+
+    .lang-select option {
+        background: #1a1a1a;
+        color: #fff;
+    }
+    </style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+<div class="bg-numbers">
+    <span style="top:10%;left:5%">£12,450.00</span>
+    <span style="top:25%;left:75%">€8,320.50</span>
+    <span style="top:60%;left:12%">$45,200.00</span>
+    <span style="top:75%;left:60%">£3,150.75</span>
+    <span style="top:40%;left:45%">€22,800.00</span>
+    <span style="top:85%;left:30%">£67,900.25</span>
+    <span style="top:15%;left:55%">$11,420.00</span>
+</div>
+
+<div class="layout">
+    <div class="panel-left">
+        <div>
+            <div class="logo">Va<span>u</span>lt</div>
+            <div class="tagline">{% trans "Personal Savings Tracker" %}</div>
+        </div>
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div class="feature-text">
+                    <div class="f-title">{% trans "Balance history" %}</div>
+                    <div class="f-desc">{% trans "Track all your accounts over time" %}</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🌍</div>
+                <div class="feature-text">
+                    <div class="f-title">{% trans "Multi-currency" %}</div>
+                    <div class="f-desc">{% trans "GBP, EUR and USD with live rates" %}</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-text">
+                    <div class="f-title">{% trans "Private & secure" %}</div>
+                    <div class="f-desc">{% trans "Your data, only visible to you" %}</div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-left-footer">© 2026 Vault</div>
+    </div>
+
+
+    <div class="panel-right">
+        <div class="form-heading">{% trans "Welcome back" %}</div>
+        <div class="form-sub">{% trans "Sign in to your account to continue" %}</div>
+
+        {% if form.errors %}
+            <div class="error-msg">{% trans "Invalid username or password. Please try again." %}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="field">
+                <label for="id_username">{% trans "Username" %}</label>
+                <input type="text" name="username" id="id_username"
+                       placeholder="{% trans 'your username' %}"
+                       autocomplete="username" autofocus />
+            </div>
+            <div class="field">
+                <label for="id_password">{% trans "Password" %}</label>
+                <input type="password" name="password" id="id_password"
+                       placeholder="••••••••"
+                       autocomplete="current-password" />
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <input type="checkbox" name="remember_me" id="remember_me"
+                   style="width:16px; height:16px; accent-color:#c9a84c; cursor:pointer;" />
+            <label for="remember_me" style="font-size:13px; color:rgba(255,255,255,0.5); cursor:pointer;">
+                {% trans "Remember me for 30 days" %}
+            </label>
+        </div>
+        <button type="submit" class="btn-submit">{% trans "Sign in" %} →</button>
+        </form>
+
+        <div class="divider"><span>{% trans "or" %}</span></div>
+
+        {% if show_resend %}
+        <div style="margin-top:16px; text-align:center;">
+            <a href="/resend-verification/" style="font-size:13px; color:var(--gold);">
+                Resend verification email
+            </a>
+        </div>
+        {% endif %}
+        <div class="bottom-link">
+            {% trans "No account?" %} <a href="{% url 'register' %}">{% trans "Register here" %}</a>
+        </div>
+
+        <div style="text-align: center; margin-top: 16px;">
+            <form action="{% url 'set_language' %}" method="post">
+                {% csrf_token %}
+                <select name="language" class="lang-select" onchange="this.form.submit()" style="
+                    background: rgba(255,255,255,0.06);
+                    border: 1px solid rgba(255,255,255,0.15);
+                    color: rgba(255,255,255,0.7);
+                    padding: 8px 12px;
+                    font-family: 'Instrument Sans', sans-serif;
+                    font-size: 12px;
+                    border-radius: 6px;
+                    outline: none;
+                    cursor: pointer;
+                ">
+                    <option value="en" {% if request.LANGUAGE_CODE == 'en' %}selected{% endif %} style="background:#1a1a1a; color:#fff;">🇬🇧 English</option>
+                    <option value="el" {% if request.LANGUAGE_CODE == 'el' %}selected{% endif %} style="background:#1a1a1a; color:#fff;">🇬🇷 Ελληνικά</option>
+                </select>
+            </form>
+        </div>
+
+    </div>  <!-- end panel-right -->
+</div>
+</body>
+</html>

@@ -1,0 +1,818 @@
+# Greek translations for Vault Savings Tracker
+# Copyright (C) 2026
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Vault Savings Tracker\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-02 10:06+0000\n"
+"PO-Revision-Date: 2026-04-26 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Greek\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: accounts/templates/accounts/account_detail.html:30
+#, fuzzy
+#| msgid "Dashboard"
+msgid "Back to Dashboard"
+msgstr "Επισκόπηση"
+
+#: accounts/templates/accounts/account_detail.html:36
+#: accounts/templates/accounts/myaccounts.html:175
+#: accounts/templates/accounts/myaccounts.html:318
+#: accounts/templates/accounts/profile.html:153
+msgid "Account"
+msgstr "Λογαριασμός"
+
+#: accounts/templates/accounts/account_detail.html:41
+#, fuzzy
+#| msgid "Account Balances"
+msgid "Current Balance"
+msgstr "Υπόλοιπα λογαριασμών"
+
+#: accounts/templates/accounts/account_detail.html:52
+msgid "vs first entry"
+msgstr "σε σχέση με την πρώτη καταχώρηση"
+
+#: accounts/templates/accounts/account_detail.html:55
+#, fuzzy
+#| msgid "Actions"
+msgid "Transactions"
+msgstr "Ενέργειες"
+
+#: accounts/templates/accounts/account_detail.html:57
+msgid "recorded entries"
+msgstr "καταγεγραμμένες εγγραφές"
+
+#: accounts/templates/accounts/account_detail.html:60
+#, fuzzy
+#| msgid "Account Name"
+msgid "Account Type"
+msgstr "Όνομα λογαριασμού"
+
+#: accounts/templates/accounts/account_detail.html:70
+#: accounts/templates/accounts/account_detail.html:173
+#: accounts/templates/accounts/account_detail.html:203
+msgid "changes instantly"
+msgstr "αλλάζει αμέσως"
+
+#: accounts/templates/accounts/account_detail.html:77
+#: accounts/templates/accounts/myaccounts.html:293
+msgid "Balance History"
+msgstr "Ιστορικό υπολοίπου"
+
+#: accounts/templates/accounts/account_detail.html:85
+#, fuzzy
+#| msgid "Balance History"
+msgid "Transaction History"
+msgstr "Ιστορικό υπολοίπου"
+
+#: accounts/templates/accounts/account_detail.html:86
+msgid "Click columns to sort"
+msgstr "Κλικ στις στήλες για ταξινόμηση"
+
+#: accounts/templates/accounts/account_detail.html:94
+#: accounts/templates/accounts/account_detail.html:131
+#: accounts/templates/accounts/myaccounts.html:247
+#: accounts/templates/accounts/myaccounts.html:320
+msgid "Date"
+msgstr "Ημερομηνία"
+
+# ── Dashboard / My Accounts ──
+#: accounts/templates/accounts/account_detail.html:99
+#: accounts/templates/accounts/account_detail.html:132
+#, fuzzy
+#| msgid "Total Balance"
+msgid "Balance"
+msgstr "Συνολικό υπόλοιπο"
+
+#: accounts/templates/accounts/account_detail.html:119
+msgid "Show more"
+msgstr "Εμφάνιση περισσότερων"
+
+#: accounts/templates/accounts/account_detail.html:122
+#, fuzzy
+#| msgid "No accounts yet."
+msgid "No transactions yet."
+msgstr "Δεν υπάρχουν λογαριασμοί ακόμα."
+
+#: accounts/templates/accounts/account_detail.html:127
+#, fuzzy
+#| msgid "Actions"
+msgid "Add Transactions"
+msgstr "Ενέργειες"
+
+#: accounts/templates/accounts/account_detail.html:133
+msgid "Notes"
+msgstr "Σημειώσεις"
+
+#: accounts/templates/accounts/account_detail.html:133
+msgid "optional"
+msgstr "προαιρετικό"
+
+#: accounts/templates/accounts/account_detail.html:144
+msgid "Add another entry"
+msgstr "Προσθήκη άλλης εγγραφής"
+
+#: accounts/templates/accounts/account_detail.html:145
+msgid "Save transactions"
+msgstr "Αποθήκευση συναλλαγών"
+
+#: accounts/templates/accounts/account_detail.html:251
+#, fuzzy
+#| msgid "This will delete all transactions."
+msgid "Delete this transaction?"
+msgstr "Αυτό θα διαγράψει όλες τις συναλλαγές."
+
+#: accounts/templates/accounts/base.html:542
+msgid "Navigate"
+msgstr "Πλοήγηση"
+
+#: accounts/templates/accounts/base.html:546
+#: accounts/templates/accounts/myaccounts.html:5
+#: accounts/templates/accounts/myaccounts.html:6
+msgid "Dashboard"
+msgstr "Επισκόπηση"
+
+#: accounts/templates/accounts/base.html:549
+#: accounts/templates/accounts/edit_accounts.html:5
+#: accounts/templates/accounts/edit_accounts.html:6
+#: accounts/templates/accounts/edit_accounts.html:48
+#: accounts/templates/accounts/editaccounts.html:5
+#: accounts/templates/accounts/editaccounts.html:6
+#: accounts/templates/accounts/editaccounts.html:50
+msgid "Edit Accounts"
+msgstr "Επεξεργασία λογαριασμών"
+
+#: accounts/templates/accounts/base.html:552
+#: accounts/templates/accounts/profile.html:5
+#: accounts/templates/accounts/profile.html:6
+#: accounts/templates/accounts/profile.html:63
+msgid "Profile"
+msgstr "Προφίλ"
+
+#: accounts/templates/accounts/base.html:561
+#: accounts/templates/accounts/base.html:612
+#: accounts/templates/accounts/profile.html:84
+msgid "Language"
+msgstr "Γλώσσα"
+
+#: accounts/templates/accounts/base.html:570
+#: accounts/templates/accounts/edit_accounts.html:102
+#: accounts/templates/accounts/editaccounts.html:73
+#: accounts/templates/accounts/editaccounts.html:164
+msgid "Currency"
+msgstr "Νόμισμα"
+
+#: accounts/templates/accounts/base.html:587
+msgid "Logout"
+msgstr "Αποσύνδεση"
+
+#: accounts/templates/accounts/base.html:604
+#: accounts/templates/accounts/home.html:5
+msgid "Home"
+msgstr "Αρχική"
+
+#: accounts/templates/accounts/base.html:605
+#: accounts/templates/accounts/register.html:8
+msgid "Register"
+msgstr "Εγγραφή"
+
+#: accounts/templates/accounts/base.html:606
+#: accounts/templates/accounts/login.html:8
+#: accounts/templates/registration/login.html:8
+msgid "Login"
+msgstr "Σύνδεση"
+
+#: accounts/templates/accounts/base.html:632
+msgid "My Savings Tracker"
+msgstr "Παρακολούθηση αποταμιεύσεων"
+
+#: accounts/templates/accounts/base.html:658
+#: accounts/templates/accounts/login.html:266
+#: accounts/templates/registration/login.html:266
+msgid "Personal Savings Tracker"
+msgstr "Προσωπική παρακολούθηση αποταμιεύσεων"
+
+# ── Edit Accounts ──
+#: accounts/templates/accounts/edit_accounts.html:49
+#: accounts/templates/accounts/editaccounts.html:51
+msgid "Add new savings accounts or remove existing ones."
+msgstr "Πρόσθεσε νέους λογαριασμούς αποταμίευσης ή αφαίρεσε υπάρχοντες."
+
+#: accounts/templates/accounts/edit_accounts.html:55
+#: accounts/templates/accounts/editaccounts.html:57
+msgid "Your Accounts"
+msgstr "Οι λογαριασμοί σου"
+
+#: accounts/templates/accounts/edit_accounts.html:75
+msgid "Update"
+msgstr "Ενημέρωση"
+
+#: accounts/templates/accounts/edit_accounts.html:80
+#: accounts/templates/accounts/edit_accounts.html:201
+#: accounts/templates/accounts/editaccounts.html:78
+#: accounts/templates/accounts/editaccounts.html:283
+msgid "Delete"
+msgstr "Διαγραφή"
+
+#: accounts/templates/accounts/edit_accounts.html:87
+#: accounts/templates/accounts/editaccounts.html:150
+msgid "No accounts yet. Add your first one →"
+msgstr "Δεν υπάρχουν λογαριασμοί ακόμα. Πρόσθεσε τον πρώτο σου →"
+
+#: accounts/templates/accounts/edit_accounts.html:94
+#: accounts/templates/accounts/editaccounts.html:157
+msgid "Add New Account"
+msgstr "Προσθήκη νέου λογαριασμού"
+
+#: accounts/templates/accounts/edit_accounts.html:101
+#: accounts/templates/accounts/editaccounts.html:163
+msgid "Account Name"
+msgstr "Όνομα λογαριασμού"
+
+#: accounts/templates/accounts/edit_accounts.html:133
+#: accounts/templates/accounts/editaccounts.html:192
+#, fuzzy
+#| msgid "Add account"
+msgid "Add another account"
+msgstr "Προσθήκη λογαριασμού"
+
+#: accounts/templates/accounts/edit_accounts.html:136
+#: accounts/templates/accounts/editaccounts.html:196
+#, fuzzy
+#| msgid "Create account"
+msgid "Save accounts"
+msgstr "Δημιούργησε λογαριασμό"
+
+#: accounts/templates/accounts/edit_accounts.html:142
+#: accounts/templates/accounts/editaccounts.html:202
+msgid "Back to My Accounts"
+msgstr "Επιστροφή στους λογαριασμούς"
+
+#: accounts/templates/accounts/edit_accounts.html:201
+#: accounts/templates/accounts/editaccounts.html:283
+msgid "This will permanently remove all its balance history."
+msgstr "Αυτό θα διαγράψει μόνιμα όλο το ιστορικό υπολοίπου."
+
+#: accounts/templates/accounts/edit_accounts.html:214
+#: accounts/templates/accounts/editaccounts.html:296
+msgid "Error deleting account."
+msgstr "Σφάλμα κατά τη διαγραφή λογαριασμού."
+
+#: accounts/templates/accounts/editaccounts.html:72
+msgid "Rename"
+msgstr "Μετονομασία"
+
+#: accounts/templates/accounts/editaccounts.html:74
+msgid "Icon"
+msgstr "Εικονίδιο"
+
+#: accounts/templates/accounts/editaccounts.html:107
+#: accounts/templates/accounts/editaccounts.html:142
+#: accounts/templates/accounts/myaccounts.html:249
+msgid "Save"
+msgstr "Αποθήκευση"
+
+#: accounts/templates/accounts/editaccounts.html:108
+#: accounts/templates/accounts/editaccounts.html:129
+#: accounts/templates/accounts/editaccounts.html:143
+#: accounts/templates/accounts/import_csv.html:59
+#: accounts/templates/accounts/myaccounts.html:251
+msgid "Cancel"
+msgstr "Ακύρωση"
+
+#: accounts/templates/accounts/editaccounts.html:165
+#: accounts/templates/accounts/myaccounts.html:176
+msgid "Type"
+msgstr "Τύπος"
+
+#: accounts/templates/accounts/home.html:6
+msgid "Welcome"
+msgstr "Καλωσόρισες"
+
+# ── Home page ──
+#: accounts/templates/accounts/home.html:10
+msgid "Track every pound."
+msgstr "Παρακολούθησε κάθε ευρώ."
+
+#: accounts/templates/accounts/home.html:11
+msgid ""
+"Vault helps you track all your savings accounts in one place. See your "
+"balances, update them over time, and watch your wealth grow."
+msgstr ""
+"Το Vault σε βοηθά να παρακολουθείς όλους τους λογαριασμούς αποταμίευσής σου "
+"σε ένα μέρος. Δες τα υπόλοιπα, ενημέρωσέ τα με την πάροδο του χρόνου και "
+"παρακολούθησε την περιουσία σου να μεγαλώνει."
+
+#: accounts/templates/accounts/home.html:14
+#: accounts/templates/accounts/register.html:137
+msgid "Create account"
+msgstr "Δημιούργησε λογαριασμό"
+
+# ── Login / Register ──
+#: accounts/templates/accounts/home.html:15
+#: accounts/templates/accounts/login.html:324
+#: accounts/templates/accounts/register.html:141
+#: accounts/templates/registration/login.html:324
+msgid "Sign in"
+msgstr "Σύνδεση"
+
+#: accounts/templates/accounts/home.html:21
+#: accounts/templates/accounts/login.html:272
+#: accounts/templates/registration/login.html:272
+msgid "Balance history"
+msgstr "Ιστορικό υπολοίπου"
+
+#: accounts/templates/accounts/home.html:22
+msgid "Log balances over time and see how your savings grow."
+msgstr "Καταγράφεις υπόλοιπα με την πάροδο του χρόνου και βλέπεις πώς μεγαλώνουν οι αποταμιεύσεις σου."
+"Καταγράφεις υπόλοιπα με την πάροδο του χρόνου και βλέπεις πώς μεγαλώνουν οι "
+"αποταμιεύσεις σου."
+
+#: accounts/templates/accounts/home.html:26
+#: accounts/templates/accounts/login.html:279
+#: accounts/templates/registration/login.html:279
+msgid "Multi-currency"
+msgstr "Πολλαπλά νομίσματα"
+
+#: accounts/templates/accounts/home.html:27
+msgid "Switch between GBP, EUR, and USD at any time."
+msgstr "Εναλλαγή μεταξύ GBP, EUR και USD ανά πάσα στιγμή."
+
+#: accounts/templates/accounts/home.html:31
+#: accounts/templates/accounts/login.html:286
+#: accounts/templates/registration/login.html:286
+msgid "Private & secure"
+msgstr "Ιδιωτικό & ασφαλές"
+
+#: accounts/templates/accounts/home.html:32
+msgid "Your data is yours. Each user sees only their own accounts."
+msgstr "Τα δεδομένα σου είναι δικά σου. Κάθε χρήστης βλέπει μόνο τους δικούς του λογαριασμούς."
+"Τα δεδομένα σου είναι δικά σου. Κάθε χρήστης βλέπει μόνο τους δικούς του "
+"λογαριασμούς."
+
+#: accounts/templates/accounts/import_csv.html:5
+#: accounts/templates/accounts/import_csv.html:6
+#: accounts/templates/accounts/import_csv.html:10
+#: accounts/templates/accounts/myaccounts.html:167
+msgid "Import CSV"
+msgstr "Εισαγωγή CSV"
+
+#: accounts/templates/accounts/import_csv.html:11
+msgid "Upload a CSV file to import transactions."
+msgstr "Ανέβασε ένα αρχείο CSV για εισαγωγή συναλλαγών."
+
+#: accounts/templates/accounts/import_csv.html:14
+msgid "File format"
+msgstr "Μορφή αρχείου"
+
+#: accounts/templates/accounts/import_csv.html:15
+msgid "Your CSV file must have exactly these 4 columns:"
+msgstr "Το αρχείο CSV πρέπει να έχει ακριβώς αυτές τις 4 στήλες:"
+
+#: accounts/templates/accounts/import_csv.html:41
+msgid "Date format must be"
+msgstr "Η μορφή ημερομηνίας πρέπει να είναι"
+
+#: accounts/templates/accounts/import_csv.html:42
+#, fuzzy
+#| msgid "Currency"
+msgid "Currency must be"
+msgstr "Νόμισμα"
+
+#: accounts/templates/accounts/import_csv.html:42
+#: accounts/templates/accounts/login.html:327
+#: accounts/templates/registration/login.html:327
+msgid "or"
+msgstr "ή"
+
+#: accounts/templates/accounts/import_csv.html:43
+msgid "If the account doesn't exist it will be created automatically"
+msgstr "Αν ο λογαριασμός δεν υπάρχει, θα δημιουργηθεί αυτόματα"
+
+#: accounts/templates/accounts/import_csv.html:44
+msgid "The exported CSV from this app is already in the correct format"
+msgstr "Το εξαγόμενο CSV από αυτή την εφαρμογή είναι ήδη στη σωστή μορφή"
+
+#: accounts/templates/accounts/import_csv.html:49
+msgid "Upload file"
+msgstr "Ανέβασμα αρχείου"
+
+#: accounts/templates/accounts/import_csv.html:53
+msgid "CSV file"
+msgstr "Αρχείο CSV"
+
+#: accounts/templates/accounts/import_csv.html:58
+msgid "Import"
+msgstr "Εισαγωγή"
+
+#: accounts/templates/accounts/login.html:273
+#: accounts/templates/registration/login.html:273
+msgid "Track all your accounts over time"
+msgstr "Παρακολούθησε όλους τους λογαριασμούς σου με την πάροδο του χρόνου"
+
+#: accounts/templates/accounts/login.html:280
+#: accounts/templates/registration/login.html:280
+msgid "GBP, EUR and USD with live rates"
+msgstr "GBP, EUR και USD με ζωντανές ισοτιμίες"
+
+#: accounts/templates/accounts/login.html:287
+#: accounts/templates/registration/login.html:287
+msgid "Your data, only visible to you"
+msgstr "Τα δεδομένα σου, ορατά μόνο σε εσένα"
+
+#: accounts/templates/accounts/login.html:296
+#: accounts/templates/registration/login.html:296
+msgid "Welcome back"
+msgstr "Καλωσήρθες"
+
+#: accounts/templates/accounts/login.html:297
+#: accounts/templates/registration/login.html:297
+msgid "Sign in to your account to continue"
+msgstr "Συνδέσου στον λογαριασμό σου για να συνεχίσεις"
+
+#: accounts/templates/accounts/login.html:300
+#: accounts/templates/registration/login.html:300
+msgid "Invalid username or password. Please try again."
+msgstr "Λάθος όνομα χρήστη ή κωδικός. Δοκίμασε ξανά."
+
+#: accounts/templates/accounts/login.html:306
+#: accounts/templates/accounts/profile.html:196
+#: accounts/templates/registration/login.html:306
+msgid "Username"
+msgstr "Όνομα χρήστη"
+
+#: accounts/templates/accounts/login.html:308
+#: accounts/templates/registration/login.html:308
+msgid "your username"
+msgstr "το όνομα χρήστη σου"
+
+#: accounts/templates/accounts/login.html:312
+#: accounts/templates/registration/login.html:312
+msgid "Password"
+msgstr "Κωδικός"
+
+#: accounts/templates/accounts/login.html:321
+#: accounts/templates/registration/login.html:321
+msgid "Remember me for 30 days"
+msgstr "Να με θυμάσαι για 30 μέρες"
+
+#: accounts/templates/accounts/login.html:337
+#: accounts/templates/registration/login.html:337
+msgid "No account?"
+msgstr "Δεν έχεις λογαριασμό;"
+
+#: accounts/templates/accounts/login.html:337
+#: accounts/templates/registration/login.html:337
+msgid "Register here"
+msgstr "Εγγράψου εδώ"
+
+#: accounts/templates/accounts/myaccounts.html:113
+msgid "Your financial data is hidden."
+msgstr "Τα οικονομικά σου δεδομένα είναι κρυφά."
+
+#: accounts/templates/accounts/myaccounts.html:113
+msgid "Do you want to show it?"
+msgstr "Θέλεις να τα εμφανίσεις;"
+
+#: accounts/templates/accounts/myaccounts.html:119
+msgid "Show my data"
+msgstr "Εμφάνιση δεδομένων"
+
+#: accounts/templates/accounts/myaccounts.html:122
+msgid "Disable privacy mode"
+msgstr "Απενεργοποίηση ιδιωτικής λειτουργίας"
+
+#: accounts/templates/accounts/myaccounts.html:130
+msgid "Net Worth"
+msgstr "Καθαρή αξία"
+
+#: accounts/templates/accounts/myaccounts.html:134
+msgid "assets minus debts"
+msgstr "ενεργητικό μείον υποχρεώσεις"
+
+#: accounts/templates/accounts/myaccounts.html:137
+msgid "Total Assets"
+msgstr "Συνολικό ενεργητικό"
+
+#: accounts/templates/accounts/myaccounts.html:139
+msgid "savings, investments, property"
+msgstr "αποταμιεύσεις, επενδύσεις, ακίνητα"
+
+#: accounts/templates/accounts/myaccounts.html:142
+msgid "Total Debts"
+msgstr "Συνολικές υποχρεώσεις"
+
+#: accounts/templates/accounts/myaccounts.html:144
+msgid "mortgage, loans"
+msgstr "στεγαστικό, δάνεια, χρέη"
+
+#: accounts/templates/accounts/myaccounts.html:147
+msgid "Accounts"
+msgstr "Λογαριασμοί"
+
+#: accounts/templates/accounts/myaccounts.html:149
+msgid "across"
+msgstr "σε"
+
+#: accounts/templates/accounts/myaccounts.html:158
+msgid "Account Balances"
+msgstr "Υπόλοιπα λογαριασμών"
+
+#: accounts/templates/accounts/myaccounts.html:161
+msgid "Displaying in"
+msgstr "Εμφάνιση σε"
+
+#: accounts/templates/accounts/myaccounts.html:161
+msgid "live rates"
+msgstr "ζωντανές ισοτιμίες"
+
+#: accounts/templates/accounts/myaccounts.html:164
+msgid "Export CSV"
+msgstr "Εξαγωγή CSV"
+
+#: accounts/templates/accounts/myaccounts.html:177
+msgid "Balance (converted)"
+msgstr "Υπόλοιπο (μετατρεπόμενο)"
+
+#: accounts/templates/accounts/myaccounts.html:178
+msgid "Native balance"
+msgstr "Αρχικό υπόλοιπο"
+
+#: accounts/templates/accounts/myaccounts.html:179
+msgid "Share"
+msgstr "Ποσοστό"
+
+#: accounts/templates/accounts/myaccounts.html:180
+msgid "Last Updated"
+msgstr "Τελευταία ενημέρωση"
+
+#: accounts/templates/accounts/myaccounts.html:181
+msgid "Actions"
+msgstr "Ενέργειες"
+
+#: accounts/templates/accounts/myaccounts.html:226
+#: accounts/templates/accounts/myaccounts.html:381
+#: accounts/templates/accounts/myaccounts.html:395
+msgid "Edit"
+msgstr "Επεξεργασία"
+
+#: accounts/templates/accounts/myaccounts.html:231
+#: accounts/templates/accounts/myaccounts.html:406
+msgid "Reset"
+msgstr "Επαναφορά"
+
+#: accounts/templates/accounts/myaccounts.html:244
+msgid "New balance"
+msgstr "Νέο υπόλοιπο"
+
+#: accounts/templates/accounts/myaccounts.html:258
+msgid "Account currency"
+msgstr "Νόμισμα λογαριασμού"
+
+#: accounts/templates/accounts/myaccounts.html:265
+msgid "Update currency"
+msgstr "Ενημέρωση νομίσματος"
+
+#: accounts/templates/accounts/myaccounts.html:274
+#: accounts/templates/accounts/myaccounts.html:484
+#: accounts/templates/accounts/myaccounts.html:528
+msgid "Total"
+msgstr "Σύνολο"
+
+#: accounts/templates/accounts/myaccounts.html:281
+msgid ""
+"Balances converted using live exchange rates. Native currency shown where "
+"different from display currency."
+msgstr ""
+"Τα υπόλοιπα μετατρέπονται με ζωντανές ισοτιμίες. Το αρχικό νόμισμα "
+"εμφανίζεται όταν διαφέρει από το νόμισμα εμφάνισης."
+
+#: accounts/templates/accounts/myaccounts.html:285
+msgid "No accounts yet."
+msgstr "Δεν υπάρχουν λογαριασμοί ακόμα."
+
+#: accounts/templates/accounts/myaccounts.html:285
+msgid "Add one here →"
+msgstr "Πρόσθεσε έναν εδώ →"
+
+#: accounts/templates/accounts/myaccounts.html:295
+msgid "From"
+msgstr "Από"
+
+#: accounts/templates/accounts/myaccounts.html:297
+msgid "To"
+msgstr "Έως"
+
+#: accounts/templates/accounts/myaccounts.html:299
+msgid "Filter"
+msgstr "Φίλτρο"
+
+#: accounts/templates/accounts/myaccounts.html:300
+msgid "Clear"
+msgstr "Καθαρισμός"
+
+#: accounts/templates/accounts/myaccounts.html:304
+#, fuzzy
+#| msgid "Line chart showing balance history for each account"
+msgid "Line chart showing balance history"
+msgstr "Γραμμικό διάγραμμα ιστορικού υπολοίπου"
+"Γραμμικό διάγραμμα που δείχνει το ιστορικό υπολοίπου για κάθε λογαριασμό"
+
+#: accounts/templates/accounts/myaccounts.html:305
+msgid "Balance history chart"
+msgstr "Διάγραμμα ιστορικού υπολοίπου"
+
+#: accounts/templates/accounts/myaccounts.html:313
+msgid "Recent Updates"
+msgstr "Πρόσφατες ενημερώσεις"
+
+#: accounts/templates/accounts/myaccounts.html:319
+msgid "Balance (native)"
+msgstr "Υπόλοιπο (αρχικό)"
+
+#: accounts/templates/accounts/myaccounts.html:339
+msgid "No updates recorded yet."
+msgstr "Δεν έχουν καταγραφεί ενημερώσεις ακόμα."
+
+#: accounts/templates/accounts/myaccounts.html:385
+msgid "Close"
+msgstr "Κλείσιμο"
+
+#: accounts/templates/accounts/myaccounts.html:406
+msgid "This will delete all transactions."
+msgstr "Αυτό θα διαγράψει όλες τις συναλλαγές."
+
+#: accounts/templates/accounts/myaccounts.html:412
+msgid "Error resetting account."
+msgstr "Σφάλμα κατά την επαναφορά λογαριασμού."
+
+#: accounts/templates/accounts/myaccounts.html:567
+msgid "Start date must be before end date."
+msgstr "Η ημερομηνία έναρξης πρέπει να είναι πριν από την ημερομηνία λήξης."
+
+#: accounts/templates/accounts/profile.html:64
+msgid "Manage your account settings and preferences."
+msgstr "Διαχειρίσου τις ρυθμίσεις και τις προτιμήσεις σου."
+
+#: accounts/templates/accounts/profile.html:70
+msgid "Preferences"
+msgstr "Προτιμήσεις"
+
+#: accounts/templates/accounts/profile.html:76
+msgid "Email address"
+msgstr "Διεύθυνση email"
+
+#: accounts/templates/accounts/profile.html:80
+msgid "Used for reminders only"
+msgstr "Χρησιμοποιείται μόνο για υπενθυμίσεις"
+
+#: accounts/templates/accounts/profile.html:92
+#, fuzzy
+#| msgid "Display Currency"
+msgid "Display currency"
+msgstr "Νόμισμα εμφάνισης"
+
+#: accounts/templates/accounts/profile.html:108
+msgid "Monthly balance reminder"
+msgstr "Μηνιαία υπενθύμιση υπολοίπου"
+
+#: accounts/templates/accounts/profile.html:117
+msgid "Privacy mode"
+msgstr "Ιδιωτική λειτουργία"
+
+#: accounts/templates/accounts/profile.html:120
+msgid "Hides all data on the dashboard until you choose to reveal it"
+msgstr "Αποκρύπτει όλα τα δεδομένα στον πίνακα ελέγχου μέχρι να επιλέξεις να τα εμφανίσεις"
+
+#: accounts/templates/accounts/profile.html:129
+#, fuzzy
+#| msgid "No account?"
+msgid "Show account icons"
+msgstr "Δεν έχεις λογαριασμό;"
+
+#: accounts/templates/accounts/profile.html:132
+msgid "Show emoji icons next to account names"
+msgstr "Εμφάνιση emoji δίπλα στα ονόματα λογαριασμών"
+
+#: accounts/templates/accounts/profile.html:136
+msgid "Remind me on day"
+msgstr "Υπενθύμισέ μου την ημέρα"
+
+#: accounts/templates/accounts/profile.html:140
+msgid "Last day of month"
+msgstr "Τελευταία ημέρα του μήνα"
+
+#: accounts/templates/accounts/profile.html:144
+msgid "of each month"
+msgstr "κάθε μήνα"
+
+#: accounts/templates/accounts/profile.html:147
+msgid "Save preferences"
+msgstr "Αποθήκευση προτιμήσεων"
+
+#: accounts/templates/accounts/profile.html:156
+msgid "Change username"
+msgstr "Αλλαγή ονόματος χρήστη"
+
+#: accounts/templates/accounts/profile.html:161
+msgid "New username"
+msgstr "Νέο όνομα χρήστη"
+
+#: accounts/templates/accounts/profile.html:165
+#, fuzzy
+#| msgid "Update currency"
+msgid "Update username"
+msgstr "Ενημέρωση νομίσματος"
+
+#: accounts/templates/accounts/profile.html:170
+#: accounts/templates/accounts/profile.html:186
+msgid "Change password"
+msgstr "Αλλαγή κωδικού"
+
+#: accounts/templates/accounts/profile.html:175
+msgid "Current password"
+msgstr "Τρέχων κωδικός"
+
+#: accounts/templates/accounts/profile.html:179
+msgid "New password"
+msgstr "Νέος κωδικός"
+
+#: accounts/templates/accounts/profile.html:183
+msgid "Confirm new password"
+msgstr "Επιβεβαίωση νέου κωδικού"
+
+#: accounts/templates/accounts/profile.html:193
+#, fuzzy
+#| msgid "Account"
+msgid "Account info"
+msgstr "Λογαριασμός"
+
+#: accounts/templates/accounts/profile.html:200
+msgid "Member since"
+msgstr "Μέλος από"
+
+#: accounts/templates/accounts/profile.html:204
+#, fuzzy
+#| msgid "across all accounts"
+msgid "Total accounts"
+msgstr "σε όλους τους λογαριασμούς"
+
+#: accounts/templates/accounts/profile.html:227
+msgid "Buy me a coffee"
+msgstr "Κέρασέ με έναν καφέ"
+
+#: accounts/templates/accounts/profile.html:230
+msgid "If you find Vault useful, a coffee keeps it running!"
+msgstr "Αν το Vault σου φαίνεται χρήσιμο, ένας καφές το κρατά ζωντανό!"
+
+#: accounts/templates/accounts/register.html:127
+msgid "Create your account"
+msgstr "Δημιούργησε λογαριασμό"
+
+#: accounts/templates/accounts/register.html:141
+msgid "Already have an account?"
+msgstr "Έχεις ήδη λογαριασμό;"
+
+# ── Navigation / Sidebar ──
+#~ msgid "Menu"
+#~ msgstr "Μενού"
+
+#~ msgid "My Accounts"
+#~ msgstr "Οι λογαριασμοί μου"
+
+#~ msgid "Update Accounts"
+#~ msgstr "Ενημέρωση λογαριασμών"
+
+#~ msgid "active"
+#~ msgstr "ενεργοί"
+
+#~ msgid "live rates applied"
+#~ msgstr "εφαρμόζονται ζωντανές ισοτιμίες"
+
+#~ msgid "no updates yet"
+#~ msgstr "καμία ενημέρωση ακόμα"
+
+#~ msgid "converted to"
+#~ msgstr "μετατράπηκε σε"
+
+#~ msgid "Update Balance"
+#~ msgstr "Ενημέρωση υπολοίπου"
+
+# ── Misc ──
+#~ msgid "Select Currency:"
+#~ msgstr "Επιλογή νομίσματος:"
+
+#~ msgid "Add a New Account"
+#~ msgstr "Προσθήκη νέου λογαριασμού"
+
+#~ msgid "No recent updates."
+#~ msgstr "Καμία πρόσφατη ενημέρωση."
+
+#~ msgid "Recent Account Updates"
+#~ msgstr "Πρόσφατες ενημερώσεις λογαριασμών"

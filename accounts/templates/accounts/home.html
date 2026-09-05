@@ -1,0 +1,36 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Home" %} — Vault{% endblock %}
+{% block topbar_title %}{% trans "Welcome" %}{% endblock %}
+
+{% block content %}
+<div style="max-width: 560px;">
+    <h1 class="page-heading">{% trans "Track every pound." %}</h1>
+    <p class="page-sub">{% trans "Vault helps you track all your savings accounts in one place. See your balances, update them over time, and watch your wealth grow." %}</p>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="{% url 'register' %}" class="btn btn-gold">{% trans "Create account" %} →</a>
+        <a href="{% url 'login' %}" class="btn btn-ghost">{% trans "Sign in" %}</a>
+    </div>
+
+    <div style="margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border);">
+        <div style="background: var(--card); padding: 20px 18px;">
+            <div style="font-size: 22px; margin-bottom: 8px;">📊</div>
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">{% trans "Balance history" %}</div>
+            <div style="font-size: 13px; color: var(--muted);">{% trans "Log balances over time and see how your savings grow." %}</div>
+        </div>
+        <div style="background: var(--card); padding: 20px 18px;">
+            <div style="font-size: 22px; margin-bottom: 8px;">🌍</div>
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">{% trans "Multi-currency" %}</div>
+            <div style="font-size: 13px; color: var(--muted);">{% trans "Switch between GBP, EUR, and USD at any time." %}</div>
+        </div>
+        <div style="background: var(--card); padding: 20px 18px;">
+            <div style="font-size: 22px; margin-bottom: 8px;">🔒</div>
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">{% trans "Private & secure" %}</div>
+            <div style="font-size: 13px; color: var(--muted);">{% trans "Your data is yours. Each user sees only their own accounts." %}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

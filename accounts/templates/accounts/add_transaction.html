@@ -1,0 +1,22 @@
+<!-- accounts/templates/accounts/add_transaction.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <title>Add Transaction</title>
+</head>
+<body>
+    <h1>Add a New Transaction</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add Transaction</button>
+    </form>
+
+    <a href="{% url 'accounts_list' %}">Back to Accounts</a>
+</body>
+</html>

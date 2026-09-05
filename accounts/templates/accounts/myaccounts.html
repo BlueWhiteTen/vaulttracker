@@ -1,0 +1,693 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %} — Vault{% endblock %}
+{% block topbar_title %}{% trans "Dashboard" %}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<style>
+    .accounts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+    .accounts-grid .full { grid-column: 1 / -1; }
+
+    .balance-mono { font-family: 'DM Mono', monospace; font-size: 14px; }
+
+    .pct-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .pct-bar-track {
+        flex: 1; height: 4px; background: var(--cream);
+        border-radius: 0; overflow: hidden; min-width: 60px;
+    }
+    .pct-bar-fill {
+        height: 100%; border-radius: 0;
+        transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+    .pct-label {
+        font-family: 'DM Mono', monospace; font-size: 11px;
+        color: var(--muted); width: 36px; text-align: right; flex-shrink: 0;
+    }
+
+    .date-filter { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .date-filter input {
+        background: var(--paper); border: 1px solid var(--border);
+        color: var(--ink); padding: 7px 12px;
+        font-family: 'Instrument Sans', sans-serif; font-size: 13px; outline: none;
+    }
+    .date-filter input:focus { border-color: var(--gold); }
+    .date-filter label { font-size: 12px; color: var(--muted); }
+
+    /* native currency badge */
+    .native-badge {
+        display: inline-block;
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        padding: 1px 6px;
+        background: var(--cream);
+        color: var(--muted);
+        border: 1px solid var(--border);
+        margin-left: 6px;
+        vertical-align: middle;
+    }
+
+    /* Inline edit row */
+    .inline-edit-row { display: none; }
+    .inline-edit-row.open { display: table-row; }
+    .inline-edit-row > td {
+        background: var(--gold-light);
+        padding: 12px 12px 14px !important;
+        border-bottom: 2px solid var(--gold) !important;
+    }
+    .inline-edit-form {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .inline-edit-form label {
+        font-size: 11px; font-weight: 600;
+        letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    }
+    .inline-edit-form input {
+        background: #fff; border: 1px solid var(--border); color: var(--ink);
+        padding: 8px 12px; font-family: 'Instrument Sans', sans-serif;
+        font-size: 14px; outline: none; transition: border-color 0.2s; width: 150px;
+    }
+    .inline-edit-form input[type="date"] { width: 160px; }
+    .inline-edit-form input:focus { border-color: var(--gold); }
+
+    .conversion-note {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+        .accounts-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if privacy_mode %}
+<div id="privacy-overlay" style="
+    position: fixed;
+    inset: 0;
+    background: rgba(14,14,14,0.92);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    backdrop-filter: blur(8px);
+">
+    <div style="font-family:'DM Serif Display',serif; font-size:36px; color:#fff; letter-spacing:-0.5px;">Va<span style="color:#c9a84c">u</span>lt</div>
+    <div style="font-size:15px; color:rgba(255,255,255,0.6); text-align:center; max-width:280px; line-height:1.6;">
+        {% trans "Your financial data is hidden." %}<br>{% trans "Do you want to show it?" %}
+    </div>
+    <button onclick="document.getElementById('privacy-overlay').style.display='none'"
+            style="background:var(--gold); color:#0e0e0e; border:none; padding:14px 36px;
+                   font-family:'Instrument Sans',sans-serif; font-size:15px; font-weight:600;
+                   cursor:pointer; letter-spacing:0.03em;">
+        {% trans "Show my data" %} →
+    </button>
+    <a href="{% url 'profile' %}" style="font-size:12px; color:rgba(255,255,255,0.3); font-family:'DM Mono',monospace;">
+        {% trans "Disable privacy mode" %}
+    </a>
+</div>
+{% endif %}
+
+<!-- ── KPI ROW ── -->
+<div class="kpi-grid" style="margin-bottom: 28px; grid-template-columns: repeat(4, 1fr); width: 100%; box-sizing: border-box;">
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Net Worth" %}</div>
+        <div class="kpi-value {% if net_worth >= 0 %}text-green{% else %}text-red{% endif %}">
+            {{ display_symbol }}{{ net_worth|floatformat:2 }}
+        </div>
+        <div class="kpi-sub">{% trans "assets minus debts" %}</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Total Assets" %}</div>
+        <div class="kpi-value text-green">{{ display_symbol }}{{ total_assets|floatformat:2 }}</div>
+        <div class="kpi-sub">{% trans "savings, investments, property" %}</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Total Debts" %}</div>
+        <div class="kpi-value text-red">{{ display_symbol }}{{ total_debts|floatformat:2 }}</div>
+        <div class="kpi-sub">{% trans "mortgage, loans" %}</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-label">{% trans "Accounts" %}</div>
+        <div class="kpi-value">{{ account_data|length }}</div>
+        <div class="kpi-sub">{% trans "across" %} {{ display_currency }}</div>
+    </div>
+</div>
+
+<div class="accounts-grid">
+
+    <!-- ── SEARCH BAR ── -->
+    <div class="full" style="margin-bottom:0;">
+        <form method="GET" style="display:flex; gap:8px; align-items:center;">
+            <input type="text" name="q" value="{{ search_query }}"
+                   placeholder="🔍 Search accounts…"
+                   class="form-control"
+                   style="max-width:300px; padding:9px 14px; font-size:14px;"
+                   oninput="this.form.submit()" />
+            {% if search_query %}
+            <a href="{% url 'myaccounts' %}" class="btn btn-ghost btn-sm">✕ Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- ── ACCOUNTS TABLE ── -->
+    <div class="card full">
+        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>{% trans "Account Balances" %}</span>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);">
+                    {% trans "Displaying in" %} {{ display_currency }} — {% trans "live rates" %}
+                </span>
+                <a href="{% url 'export_csv' %}" class="btn btn-ghost btn-sm" style="font-size:11px;">
+                    ↓ {% trans "Export CSV" %}
+                </a>
+                <a href="{% url 'import_csv' %}" class="btn btn-ghost btn-sm" style="font-size:11px;">
+                    ↑ {% trans "Import CSV" %}
+                </a>
+            </div>
+        </div>
+        {% if account_data %}
+        <table class="data-table" id="accountsTable">
+            <thead>
+                <tr>
+                    <th class="hide-mobile" style="width:24px;"></th>
+                    <th>{% trans "Account" %}</th>
+                    <th class="hide-mobile">{% trans "Type" %}</th>
+                    <th>{% trans "Balance (converted)" %}</th>
+                    <th class="hide-mobile">{% trans "Native balance" %}</th>
+                    <th class="hide-mobile">{% trans "Share" %}</th>
+                    <th class="hide-mobile">{% trans "Last Updated" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in account_data %}
+                <tr id="row-{{ data.account.id }}" data-id="{{ data.account.id }}">
+                    <td style="cursor:grab; color:var(--muted); font-size:18px; padding-right:4px; user-select:none; width:24px;" class="drag-handle hide-mobile">⠿</td>
+                    <td>
+                        <span class="account-dot-js" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#888;margin-right:8px;vertical-align:middle;"></span>
+                        <a href="{% url 'account_detail' data.account.id %}"
+                           style="color: var(--ink); text-decoration: none; font-weight: 500; display:inline-flex; align-items:center; gap:6px;"
+                           onmouseover="this.style.color='var(--green)';this.style.textDecoration='underline'"
+                           onmouseout="this.style.color='var(--ink)';this.style.textDecoration='none'">
+                            {% if show_icons %}<span style="font-size:16px;">{{ data.account.icon }}</span>{% endif %}{{ data.account.name }}
+                            {% if data.is_inactive %}<span style="font-size:10px; background:#fff3cd; color:#856404; padding:2px 6px; border-radius:3px; margin-left:4px; font-family:'DM Mono',monospace;">⚠ inactive</span>{% endif %}
+                        </a>
+                        {% if data.account.notes %}
+                        <div style="font-size:11px; color:var(--muted); margin-top:3px; margin-left:16px;">{{ data.account.notes }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="hide-mobile">
+                        <span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">{{ data.account.account_type }}</span>
+                    </td>
+                    <td class="balance-mono">
+                        {{ display_symbol }}{{ data.latest_balance|floatformat:2 }}
+                        {% if data.account.target %}
+                        <div style="margin-top:6px;">
+                            {% if data.account.account_type == 'debt' %}
+                                {% with pct=data.latest_balance|floatformat:0 %}
+                                <div style="height:4px; background:var(--cream); border-radius:0; overflow:hidden; width:100%; max-width:120px;">
+                                    <div style="height:100%; background:var(--green); width:{% widthratio data.account.target|add:0 data.account.target 100 %}%;"></div>
+                                </div>
+                                {% endwith %}
+                            {% else %}
+                                <div style="height:4px; background:var(--cream); border-radius:0; overflow:hidden; width:100%; max-width:120px;">
+                                    <div style="height:100%; background:var(--green); width:{% widthratio data.latest_balance data.account.target 100 %}%;"></div>
+                                </div>
+                            {% endif %}
+                            <div style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:2px;">
+                                {% if data.account.account_type == 'debt' %}
+                                    target: {{ display_symbol }}0
+                                {% else %}
+                                    {% widthratio data.latest_balance data.account.target 100 %}% of {{ display_symbol }}{{ data.account.target|floatformat:0 }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="balance-mono hide-mobile" style="color:var(--muted);">
+                        {{ data.account_symbol }}{{ data.latest_balance_native|floatformat:2 }}
+                        <span class="native-badge">{{ data.account_currency }}</span>
+                    </td>
+                    <td style="min-width:120px;" class="hide-mobile">
+                        <div class="pct-bar-wrap">
+                            <div class="pct-bar-track">
+                                <div class="pct-bar-fill"
+                                     style="background:#888;"
+                                     data-balance="{{ data.latest_balance }}"
+                                     data-total="{{ total_balance }}">
+                                </div>
+                            </div>
+                            <span class="pct-label" data-balance="{{ data.latest_balance }}" data-total="{{ total_balance }}">—</span>
+                        </div>
+                    </td>
+
+                    <td style="color:var(--muted);font-size:13px;" class="hide-mobile">
+                        {{ data.latest_transaction_date|default:"—" }}
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px;">
+                            <button class="btn btn-ghost btn-sm edit-btn"
+                                    data-account-id="{{ data.account.id }}">
+                                {% trans "Edit" %}
+                            </button>
+                            <button class="btn btn-danger btn-sm reset-btn"
+                                    data-account-id="{{ data.account.id }}"
+                                    data-account-name="{{ data.account.name }}">
+                                {% trans "Reset" %}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Inline edit row -->
+                <tr class="inline-edit-row" id="edit-row-{{ data.account.id }}">
+                    <td colspan="6">
+                        <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
+                            <!-- Update balance form -->
+                            <form class="inline-edit-form" method="POST" action="{% url 'myaccounts' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="account" value="{{ data.account.id }}" />
+                                <label>{% trans "New balance" %} ({{ data.account_currency }})</label>
+                                <input type="number" name="balance" step="0.01" min="0"
+                                       placeholder="{{ data.latest_balance_native|floatformat:2 }}" required />
+                                <label>{% trans "Date" %}</label>
+                                <input type="date" name="date" id="edit-date-{{ data.account.id }}" />
+                                <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                                <button type="button" class="btn btn-ghost btn-sm cancel-btn"
+                                        data-account-id="{{ data.account.id }}">{% trans "Cancel" %}</button>
+                            </form>
+                            <!-- Change account currency form -->
+                            <form method="POST" action="/update_account_currency/{{ data.account.id }}/"
+                                  style="display:flex; align-items:center; gap:8px; border-left:1px solid var(--border); padding-left:20px;">
+                                {% csrf_token %}
+                                <label style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted);">
+                                    {% trans "Account currency" %}
+                                </label>
+                                <select name="currency" style="background:var(--paper); border:1px solid var(--border); color:var(--ink); padding:8px 12px; font-family:'Instrument Sans',sans-serif; font-size:13px; outline:none;">
+                                    <option value="GBP" {% if data.account_currency == "GBP" %}selected{% endif %}>£ GBP</option>
+                                    <option value="EUR" {% if data.account_currency == "EUR" %}selected{% endif %}>€ EUR</option>
+                                    <option value="USD" {% if data.account_currency == "USD" %}selected{% endif %}>$ USD</option>
+                                </select>
+                                <button type="submit" class="btn btn-ghost btn-sm">{% trans "Update currency" %}</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><strong>{% trans "Net Worth" %}</strong></td>
+                    <td class="balance-mono" style="font-family:'DM Serif Display',serif; font-size:20px; color:var(--green);"><strong>{{ display_symbol }}{{ net_worth|floatformat:2 }}</strong></td>
+                    <td colspan="4"></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="conversion-note">
+            ⚡ {% trans "Balances converted using live exchange rates. Native currency shown where different from display currency." %}
+        </div>
+        {% else %}
+        <p style="color:var(--muted);font-size:14px;padding:20px 0;">
+            {% trans "No accounts yet." %} <a href="{% url 'edit_accounts' %}" style="color:var(--green);">{% trans "Add one here →" %}</a>
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- ── CHART ── -->
+    <div class="card full">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <span>{% trans "Balance History" %}</span>
+            <div class="date-filter">
+                <label>{% trans "From" %}</label>
+                <input type="date" id="startDate">
+                <label>{% trans "To" %}</label>
+                <input type="date" id="endDate">
+                <button class="btn btn-ghost btn-sm" id="filterButton">{% trans "Filter" %}</button>
+                <button class="btn btn-ghost btn-sm" id="clearFilter">{% trans "Clear" %}</button>
+            </div>
+        </div>
+        <div style="position:relative;width:100%;height:280px;">
+            <canvas id="balanceChart" role="img" aria-label="{% trans 'Line chart showing balance history' %}">
+                {% trans "Balance history chart" %}
+            </canvas>
+        </div>
+        <div id="chartLegend" style="display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12px;color:#7a7369;font-family:'DM Mono',monospace;"></div>
+    </div>
+
+    <!-- ── RECENT UPDATES ── -->
+    <div class="card full">
+        <div class="card-title">{% trans "Recent Updates" %}</div>
+        {% if recent_updates %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Account" %}</th>
+                    <th>{% trans "Balance (native)" %}</th>
+                    <th>{% trans "Date" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for update in recent_updates %}
+                <tr>
+                    <td>{{ update.account.name }}</td>
+                    <td class="balance-mono">
+                        {% with cur=update.account.currency %}
+                            {% if cur == "EUR" %}€{% elif cur == "USD" %}${% else %}£{% endif %}
+                        {% endwith %}{{ update.balance|floatformat:2 }}
+                        <span class="native-badge">{{ update.account.currency }}</span>
+                    </td>
+                    <td style="color:var(--muted);font-size:13px;">{{ update.date|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:var(--muted);font-size:14px;">{% trans "No updates recorded yet." %}</p>
+        {% endif %}
+    </div>
+
+    <!-- ── PERIOD COMPARISON ── -->
+    <div class="card full">
+        <div class="card-title">{% trans "Net Worth Change" %}</div>
+        {% if period_comparison %}
+        <div class="table-scroll">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Period" %}</th>
+                    <th>{% trans "Value then" %}</th>
+                    <th>{% trans "Change" %}</th>
+                    <th>{% trans "%" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in period_comparison %}
+                <tr>
+                    <td style="font-weight:500;">{{ p.label }}</td>
+                    <td class="balance-mono">
+                        {% if p.past_worth > 0 %}{{ display_symbol }}{{ p.past_worth|floatformat:2 }}{% else %}—{% endif %}
+                    </td>
+                    <td class="balance-mono {% if p.change >= 0 %}text-green{% else %}text-red{% endif %}">
+                        {% if p.change >= 0 %}+{% endif %}{{ display_symbol }}{{ p.change|floatformat:2 }}
+                    </td>
+                    <td class="balance-mono {% if p.pct >= 0 %}text-green{% else %}text-red{% endif %}">
+                        {% if p.pct >= 0 %}↑{% else %}↓{% endif %} {{ p.pct|floatformat:1 }}%
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p style="color:var(--muted); font-size:14px;">{% trans "Not enough data yet." %}</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+// ── Set today's date on inline edit fields ──
+document.addEventListener("DOMContentLoaded", function () {
+    const today = new Date().toISOString().split("T")[0];
+    document.querySelectorAll('input[id^="edit-date-"]').forEach(i => i.value = today);
+});
+
+// ── Drag to reorder accounts ──
+document.addEventListener("DOMContentLoaded", function () {
+    var tbody = document.querySelector("#accountsTable tbody");
+    if (!tbody) return;
+    Sortable.create(tbody, {
+        handle: ".drag-handle",
+        animation: 150,
+        filter: ".inline-edit-row",
+        onEnd: function() {
+            var order = Array.from(tbody.querySelectorAll("tr[data-id]"))
+                .filter(r => !r.classList.contains("inline-edit-row"))
+                .map(r => r.dataset.id)
+                .filter(Boolean);
+            fetch("/reorder_accounts/", {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/json" },
+                body: JSON.stringify({ order: order })
+            });
+        }
+    });
+});
+
+// ── Colour account dots ──
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.account-dot-js').forEach(function(dot, i) {
+        dot.style.background = 'hsl(' + (i * 137 % 360) + ', 55%, 42%)';
+    });
+});
+
+// ── Percentage bars ──
+document.addEventListener("DOMContentLoaded", function () {
+    const total = parseFloat("{{ total_balance|floatformat:2 }}") || 0;
+    document.querySelectorAll(".pct-bar-fill").forEach(bar => {
+        const pct = total > 0 ? (parseFloat(bar.dataset.balance) / total) * 100 : 0;
+        bar.style.width = pct.toFixed(1) + "%";
+    });
+    document.querySelectorAll(".pct-label").forEach(label => {
+        const pct = total > 0 ? (parseFloat(label.dataset.balance) / total) * 100 : 0;
+        label.textContent = pct.toFixed(1) + "%";
+    });
+});
+
+// ── Inline edit ──
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.accountId;
+            const editRow = document.getElementById("edit-row-" + id);
+            const isOpen = editRow.classList.contains("open");
+
+            document.querySelectorAll(".inline-edit-row.open").forEach(r => r.classList.remove("open"));
+            document.querySelectorAll(".edit-btn").forEach(b => b.textContent = "{% trans 'Edit' %}");
+
+            if (!isOpen) {
+                editRow.classList.add("open");
+                this.textContent = "{% trans 'Close' %}";
+                editRow.querySelector('input[name="balance"]').focus();
+            }
+        });
+    });
+
+    document.querySelectorAll(".cancel-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.accountId;
+            document.getElementById("edit-row-" + id).classList.remove("open");
+            document.querySelector(`.edit-btn[data-account-id="${id}"]`).textContent = "{% trans 'Edit' %}";
+        });
+    });
+});
+
+// ── Reset account ──
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".reset-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.accountId;
+            const name = this.dataset.accountName;
+            if (confirm(`{% trans "Reset" %} ${name}? {% trans "This will delete all transactions." %}`)) {
+                fetch(`/reset_account/${id}/`, {
+                    method: "POST",
+                    headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/json" }
+                })
+                .then(r => r.json())
+                .then(data => { if (data.success) location.reload(); else alert('{% trans "Error resetting account." %}'); })
+                .catch(e => console.error(e));
+            }
+        });
+    });
+});
+
+// ── Chart ──
+document.addEventListener("DOMContentLoaded", function () {
+    try {
+        var rawData = JSON.parse('{{ chart_data_json|escapejs }}');
+        if (Object.keys(rawData).length === 0) return;
+
+        var COLORS = ['#1a6b4a','#c9a84c','#185FA5','#8b2e2e','#534AB7','#3B6D11','#BA7517','#378ADD','#D85A30','#5DCAA7','#7F77DD','#7a7369'];
+        var chartInstance = null;
+
+        var activeAccounts = new Set(Object.keys(rawData));
+            activeAccounts.add('__total__');
+
+            function getColor(name) {
+                if (name === '__total__') return '#c9a84c';
+                var i = Object.keys(rawData).indexOf(name);
+                return 'hsl(' + (i * 137 % 360) + ', 55%, 42%)';
+            }
+
+            function calcTotal(startDate, endDate) {
+                var allDates = new Set();
+                Object.values(rawData).forEach(entries => {
+                    entries.forEach(e => {
+                        var d = new Date(e.date);
+                        if ((!startDate || d >= startDate) && (!endDate || d <= endDate)) {
+                            allDates.add(e.date);
+                        }
+                    });
+                });
+                var sortedDates = Array.from(allDates).sort();
+                return sortedDates.map(date => {
+                    var total = 0;
+                    Object.keys(rawData).forEach(name => {
+                        if (!activeAccounts.has(name)) return;
+                        var entries = rawData[name].filter(e => e.date <= date);
+                        if (entries.length > 0) total += entries[entries.length - 1].balance;
+                    });
+                    return { x: new Date(date), y: total };
+                });
+            }
+
+            function renderChart(startDate, endDate) {
+                var datasets = Object.keys(rawData)
+                    .filter(name => activeAccounts.has(name))
+                    .map((name, i) => {
+                        var color = getColor(name);
+                        return {
+                            label: name,
+                            data: rawData[name]
+                                .filter(e => {
+                                    var d = new Date(e.date);
+                                    return (!startDate || d >= startDate) && (!endDate || d <= endDate);
+                                })
+                                .map(e => ({ x: new Date(e.date), y: e.balance })),
+                            borderColor: color,
+                            backgroundColor: color + '30',
+                            borderWidth: 2, pointRadius: 4,
+                            pointBackgroundColor: color,
+                            tension: 0.3, fill: false
+                        };
+                    });
+
+                if (activeAccounts.has('__total__')) {
+                    var totalData = calcTotal(startDate, endDate);
+                    if (totalData.length > 0) {
+                        datasets.push({
+                            label: '{% trans "Total" %}',
+                            data: totalData,
+                            borderColor: '#c9a84c',
+                            backgroundColor: 'rgba(201,168,76,0.05)',
+                            borderWidth: 3,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#c9a84c',
+                            tension: 0.3,
+                            fill: false,
+                            borderDash: [6, 3],
+                        });
+                    }
+                }
+
+            // Highlight peak on each dataset
+            datasets.forEach(ds => {
+                if (!ds.data.length) return;
+                const maxY = Math.max(...ds.data.map(p => p.y));
+                ds.pointRadius = ds.data.map(p => p.y === maxY ? 8 : 3);
+                ds.pointBackgroundColor = ds.data.map(p => p.y === maxY ? '#fff' : ds.borderColor);
+                ds.pointBorderColor = ds.borderColor;
+                ds.pointBorderWidth = ds.data.map(p => p.y === maxY ? 3 : 1);
+            });
+
+            var ctx = document.getElementById('balanceChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: 'month', tooltipFormat: 'dd MMM yyyy' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: { font: { family: 'DM Mono', size: 11 }, color: '#7a7369' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                font: { family: 'DM Mono', size: 11 }, color: '#7a7369',
+                                callback: v => '{{ display_symbol }}' + v.toLocaleString()
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Build clickable legend
+            function renderLegend() {
+                var allItems = [...Object.keys(rawData), '__total__'];
+                var labels = {...Object.fromEntries(Object.keys(rawData).map(n => [n, n])), '__total__': '{% trans "Total" %}'};
+                document.getElementById('chartLegend').innerHTML = allItems.map((name, i) => {
+                    var color = getColor(name);
+                    var active = activeAccounts.has(name);
+                    return `<span class="legend-item" data-name="${name}" style="
+                        display:flex;align-items:center;gap:5px;cursor:pointer;
+                        opacity:${active ? '1' : '0.35'};transition:opacity 0.2s;
+                        user-select:none;
+                    ">
+                        <span style="width:10px;height:10px;border-radius:2px;background:${color};display:inline-block;flex-shrink:0;"></span>
+                        ${labels[name]}
+                    </span>`;
+                }).join('');
+
+                document.querySelectorAll('.legend-item').forEach(el => {
+                    el.style.cursor = 'pointer';
+                    el.addEventListener('click', function() {
+                        var name = this.dataset.name;
+                        if (activeAccounts.has(name)) {
+                            activeAccounts.delete(name);
+                        } else {
+                            activeAccounts.add(name);
+                        }
+                        var start = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
+                        var end = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
+                        renderChart(start, end);
+                        renderLegend();
+                    });
+                });
+            }
+            renderLegend();
+        }
+
+        renderChart(null, null);
+        renderLegend();
+
+        document.getElementById('filterButton').addEventListener('click', function () {
+            var start = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
+            var end = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
+            if (start && end && start > end) { alert('{% trans "Start date must be before end date." %}'); return; }
+            renderChart(start, end);
+            renderLegend();
+        });
+
+        document.getElementById('clearFilter').addEventListener('click', function () {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            renderChart(null, null);
+            renderLegend();
+        });
+
+    } catch (e) { console.error('Chart error:', e); }
+});
+</script>
+{% endblock %}

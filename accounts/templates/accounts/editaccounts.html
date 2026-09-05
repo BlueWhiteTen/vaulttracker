@@ -1,0 +1,454 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Accounts" %} — Vault{% endblock %}
+{% block topbar_title %}{% trans "Edit Accounts" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .edit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    @media (max-width: 768px) {
+        .edit-grid { grid-template-columns: 1fr; }
+    }
+    .account-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 0;
+        border-bottom: 1px solid rgba(214,208,196,0.5);
+        gap: 12px;
+    }
+    .account-row:last-child { border-bottom: none; }
+    .account-row-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+    .empty-accounts {
+        padding: 32px 0;
+        color: var(--muted);
+        font-size: 14px;
+        text-align: center;
+    }
+    .add-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-heading">{% trans "Edit Accounts" %}</h1>
+<p class="page-sub">{% trans "Add new savings accounts or remove existing ones." %}</p>
+
+<div class="edit-grid" style="max-width: 100%; box-sizing: border-box;">
+
+    <!-- ── EXISTING ACCOUNTS ── -->
+    <div class="card">
+        <div class="card-title">{% trans "Your Accounts" %} ({{ accounts|length }})</div>
+
+        {% if accounts %}
+            {% for account in accounts %}
+            <div class="account-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%;
+                                     background: hsl({{ forloop.counter0|add:forloop.counter0|add:forloop.counter0|add:"40" }}, 55%, 45%);
+                                     flex-shrink:0;"></span>
+                        {% if show_icons %}<span class="account-icon-display" style="font-size:18px; margin-right:2px;">{{ account.icon }}</span>{% endif %}
+                        <span style="font-size:14px; font-weight:500;">{{ account.name }}</span>
+                        <span class="native-badge">{{ account.currency }}</span>
+                        <span class="native-badge">{{ account.get_account_type_display }}</span>
+                        {% if account.notes %}<div style="font-size:11px; color:var(--muted); margin-top:3px;">{{ account.notes }}</div>{% endif %}
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn btn-ghost btn-sm toggle-rename-btn" data-id="{{ account.id }}">{% trans "Rename" %}</button>
+                        <button class="btn btn-ghost btn-sm toggle-notes-btn" data-id="{{ account.id }}">{% trans "Notes" %}</button>
+                        <button class="btn btn-ghost btn-sm toggle-currency-btn" data-id="{{ account.id }}">{% trans "Currency" %}</button>
+                        {% if show_icons %}<button class="btn btn-ghost btn-sm toggle-icon-btn" data-id="{{ account.id }}">{% trans "Icon" %}</button>{% endif %}
+                        <button class="btn btn-ghost btn-sm toggle-target-btn" data-id="{{ account.id }}">{% trans "Target" %}</button>
+                        <button class="btn btn-ghost btn-sm toggle-type-btn" data-id="{{ account.id }}">{% trans "Account Type" %}</button>
+
+                        <button class="btn btn-danger btn-sm delete-btn"
+                                data-account-id="{{ account.id }}"
+                                data-account-name="{{ account.name }}">
+                            {% trans "Delete" %}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Rename form (hidden by default) -->
+                <div id="rename-form-{{ account.id }}" style="display:none; width:100%;">
+                    <form method="POST" action="/rename_account/{{ account.id }}/" style="display:flex; gap:6px; align-items:center;">
+                        {% csrf_token %}
+                        <input type="text" name="name" value="{{ account.name }}"
+                               class="form-control" style="padding:6px 10px; font-size:13px; max-width:220px;" />
+                        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                        <button type="button" class="btn btn-ghost btn-sm cancel-rename" data-id="{{ account.id }}">{% trans "Cancel" %}</button>
+                    </form>
+                </div>
+
+                <!-- Notes form (hidden by default) -->
+                <div id="notes-form-{{ account.id }}" style="display:none; width:100%;">
+                    <form method="POST" action="/rename_account/{{ account.id }}/" style="display:flex; flex-direction:column; gap:8px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="name" value="{{ account.name }}" />
+                        <textarea name="account_notes" class="form-control"
+                                  style="padding:8px 12px; font-size:13px; width:100%; max-width:400px; height:80px; resize:vertical;"
+                                  placeholder="Add a note about this account… (e.g. ISA max £20k/year)">{{ account.notes }}</textarea>
+                        <div style="display:flex; gap:8px;">
+                            <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                            <button type="button" class="btn btn-ghost btn-sm cancel-notes" data-id="{{ account.id }}">{% trans "Cancel" %}</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Icon picker (hidden by default) -->
+                <div id="icon-form-{{ account.id }}" style="display:none; width:100%;">
+                    <form method="POST" action="/rename_account/{{ account.id }}/" style="display:flex; flex-direction:column; gap:8px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="name" value="{{ account.name }}" />
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                            {% for emoji in emoji_list %}
+                            <button type="submit" name="icon" value="{{ emoji }}"
+                                    style="font-size:22px; background:{% if account.icon == emoji %}var(--gold-light){% else %}none{% endif %};
+                                           border:1px solid {% if account.icon == emoji %}var(--gold){% else %}var(--border){% endif %};
+                                           padding:4px 8px; cursor:pointer; border-radius:4px; transition:all 0.15s;"
+                                    onmouseover="this.style.background='var(--gold-light)'"
+                                    onmouseout="this.style.background='{% if account.icon == emoji %}var(--gold-light){% else %}none{% endif %}'">
+                                {{ emoji }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-sm cancel-icon" data-id="{{ account.id }}" style="align-self:flex-start;">{% trans "Cancel" %}</button>
+                    </form>
+                </div>
+
+                <!-- Target form (hidden by default) -->
+                <div id="target-form-{{ account.id }}" style="display:none; width:100%;">
+                    <form method="POST" action="/rename_account/{{ account.id }}/" style="display:flex; gap:6px; align-items:center;">
+                        {% csrf_token %}
+                        <input type="hidden" name="name" value="{{ account.name }}" />
+                        <label style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted);">
+                            {% trans "Target amount" %}
+                        </label>
+                        <input type="number" name="target" step="1" min="0"
+                               value="{% if account.target %}{{ account.target|floatformat:0 }}{% endif %}"
+                               placeholder="e.g. 20000"
+                               class="form-control" style="padding:6px 10px; font-size:13px; max-width:150px;" />
+                        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                        <button type="button" class="btn btn-ghost btn-sm cancel-target" data-id="{{ account.id }}">{% trans "Cancel" %}</button>
+                    </form>
+                    {% if account.target %}
+                    <div style="font-size:12px; color:var(--muted); margin-top:6px;">
+                        {% trans "Current target" %}: {{ account_symbol }}{{ account.target|floatformat:0 }}
+                        — <a href="#" class="clear-target" data-id="{{ account.id }}" style="color:var(--red);">{% trans "Clear" %}</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Account Type form (hidden by default) -->
+                <div id="type-form-{{ account.id }}" style="display:none; width:100%;">
+                    <form method="POST" action="/rename_account/{{ account.id }}/" style="display:flex; gap:6px; align-items:center;">
+                        {% csrf_token %}
+                        <input type="hidden" name="name" value="{{ account.name }}" />
+                        <select name="account_type" class="form-control" style="padding:6px 10px; font-size:13px; width:auto;">
+                            <option value="savings" {% if account.account_type == "savings" %}selected{% endif %}>💰 Savings</option>
+                            <option value="investment" {% if account.account_type == "investment" %}selected{% endif %}>📈 Investment</option>
+                            <option value="property" {% if account.account_type == "property" %}selected{% endif %}>🏠 Property</option>
+                            <option value="pension" {% if account.account_type == "pension" %}selected{% endif %}>🏦 Pension</option>
+                            <option value="debt" {% if account.account_type == "debt" %}selected{% endif %}>💳 Debt/Mortgage</option>
+                            <option value="asset" {% if account.account_type == "asset" %}selected{% endif %}>🚗 Asset</option>
+                            <option value="other" {% if account.account_type == "other" %}selected{% endif %}>📁 Other</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                        <button type="button" class="btn btn-ghost btn-sm cancel-type" data-id="{{ account.id }}">{% trans "Cancel" %}</button>
+                    </form>
+                </div>
+
+                <!-- Currency form (hidden by default) -->
+                <div id="currency-form-{{ account.id }}" style="display:none; width:100%;">
+                    <form method="post" action="/update_account_currency/{{ account.id }}/" style="display:flex; gap:6px; align-items:center;">
+                        {% csrf_token %}
+                        <select name="currency" class="form-control" style="padding:6px 10px; font-size:13px; width:auto;">
+                            <option value="GBP" {% if account.currency == "GBP" %}selected{% endif %}>£ GBP</option>
+                            <option value="EUR" {% if account.currency == "EUR" %}selected{% endif %}>€ EUR</option>
+                            <option value="USD" {% if account.currency == "USD" %}selected{% endif %}>$ USD</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                        <button type="button" class="btn btn-ghost btn-sm cancel-currency" data-id="{{ account.id }}">{% trans "Cancel" %}</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-accounts">
+                {% trans "No accounts yet. Add your first one →" %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ── ADD ACCOUNT FORM ── -->
+    <div class="card">
+        <div class="card-title">{% trans "Add New Account" %}</div>
+        <form method="post" id="bulk-add-form">
+            {% csrf_token %}
+            <input type="hidden" name="bulk_add" value="1" />
+
+            <div style="display:grid; grid-template-columns:1fr 90px 120px 36px; gap:8px; margin-bottom:6px;">
+                <div class="form-label" style="margin:0;">{% trans "Account Name" %}</div>
+                <div class="form-label" style="margin:0;">{% trans "Currency" %}</div>
+                <div class="form-label" style="margin:0;">{% trans "Type" %}</div>
+                <div></div>
+            </div>
+
+            <div id="account-rows">
+                <div class="account-add-row" style="display:grid; grid-template-columns:1fr 90px 120px 36px; gap:8px; margin-bottom:8px;">
+                    <input type="text" name="names[]" class="form-control"
+                           placeholder="e.g. Monzo ISA…" autocomplete="off" />
+                    <select name="currencies[]" class="form-control">
+                        <option value="GBP">£ GBP</option>
+                        <option value="EUR">€ EUR</option>
+                        <option value="USD">$ USD</option>
+                    </select>
+                    <select name="types[]" class="form-control">
+                        <option value="savings">💰 Savings</option>
+                        <option value="investment">📈 Investment</option>
+                        <option value="property">🏠 Property</option>
+                        <option value="pension">🏦 Pension</option>
+                        <option value="debt">💳 Debt</option>
+                        <option value="asset">🚗 Asset</option>
+                        <option value="other">📁 Other</option>
+                    </select>
+                    <div></div>
+                </div>
+            </div>
+
+            <button type="button" id="add-row-btn" style="background:none;border:1px dashed var(--border);color:var(--muted);padding:7px 14px;font-family:'Instrument Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;text-align:left;margin-bottom:14px;transition:all 0.2s;">
+                + {% trans "Add another account" %}
+            </button>
+
+            <button type="submit" class="btn btn-primary">
+                {% trans "Save accounts" %} →
+            </button>
+        </form>
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <a href="{% url 'myaccounts' %}" class="btn btn-ghost">
+                ← {% trans "Back to My Accounts" %}
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Toggle icon forms
+    document.querySelectorAll('.toggle-icon-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            document.getElementById('icon-form-' + id).style.display = 'block';
+            document.getElementById('rename-form-' + id).style.display = 'none';
+            document.getElementById('currency-form-' + id).style.display = 'none';
+        });
+    });
+    document.querySelectorAll('.cancel-icon').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('icon-form-' + this.dataset.id).style.display = 'none';
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Emoji picker
+    document.querySelectorAll('.emoji-pick').forEach(btn => {
+        btn.addEventListener('click', function() {
+            var id = this.dataset.id;
+            var emoji = this.dataset.emoji;
+            document.getElementById('icon-input-' + id).value = emoji;
+            // Highlight selected
+            document.querySelectorAll('.emoji-pick[data-id="' + id + '"]').forEach(b => {
+                b.style.background = 'none';
+                b.style.borderColor = 'var(--border)';
+            });
+            this.style.background = 'var(--gold-light)';
+            this.style.borderColor = 'var(--gold)';
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    function closeAllForms(id) {
+        ["rename-form-", "currency-form-", "target-form-", "type-form-", "icon-form-", "notes-form-"].forEach(prefix => {
+            const el = document.getElementById(prefix + id);
+            if (el) el.style.display = "none";
+        });
+    }
+
+    // Toggle notes forms
+    document.querySelectorAll(".toggle-notes-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.id;
+            const form = document.getElementById("notes-form-" + id);
+            const isOpen = form.style.display === "block";
+            closeAllForms(id);
+            if (!isOpen) form.style.display = "block";
+        });
+    });
+    document.querySelectorAll(".cancel-notes").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.getElementById("notes-form-" + this.dataset.id).style.display = "none";
+        });
+    });
+
+    // Toggle rename forms
+    document.querySelectorAll(".toggle-rename-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.id;
+            const form = document.getElementById("rename-form-" + id);
+            const isOpen = form.style.display === "block";
+            closeAllForms(id);
+            if (!isOpen) form.style.display = "block";
+        });
+    });
+    document.querySelectorAll(".cancel-rename").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.getElementById("rename-form-" + this.dataset.id).style.display = "none";
+        });
+    });
+
+    // Toggle target forms
+    document.querySelectorAll(".toggle-target-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.id;
+            const form = document.getElementById("target-form-" + id);
+            const isOpen = form.style.display === "block";
+            closeAllForms(id);
+            if (!isOpen) form.style.display = "block";
+        });
+    });
+    document.querySelectorAll(".cancel-target").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.getElementById("target-form-" + this.dataset.id).style.display = "none";
+        });
+    });
+
+    // Toggle type forms
+    document.querySelectorAll(".toggle-type-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.id;
+            const form = document.getElementById("type-form-" + id);
+            const isOpen = form.style.display === "block";
+            closeAllForms(id);
+            if (!isOpen) form.style.display = "block";
+        });
+    });
+    document.querySelectorAll(".cancel-type").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.getElementById("type-form-" + this.dataset.id).style.display = "none";
+        });
+    });
+
+    // Toggle currency forms
+    document.querySelectorAll(".toggle-currency-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.id;
+            const form = document.getElementById("currency-form-" + id);
+            const isOpen = form.style.display === "block";
+            closeAllForms(id);
+            if (!isOpen) form.style.display = "block";
+        });
+    });
+    document.querySelectorAll(".cancel-currency").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.getElementById("currency-form-" + this.dataset.id).style.display = "none";
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.accountId;
+            const name = this.dataset.accountName;
+
+            if (confirm(`{% trans "Delete" %} "${name}"? {% trans "This will permanently remove all its balance history." %}`)) {
+                fetch(`/delete_account/${id}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('{% trans "Error deleting account." %}');
+                    }
+                })
+                .catch(e => console.error(e));
+            }
+        });
+    });
+});
+
+// ── Bulk add rows ──
+const MAX_ROWS = 10;
+const container = document.getElementById('account-rows');
+const addBtn = document.getElementById('add-row-btn');
+
+if (addBtn) {
+    addBtn.addEventListener('click', function () {
+        const rows = container.querySelectorAll('.account-add-row');
+        if (rows.length >= MAX_ROWS) {
+            addBtn.textContent = '✓ Maximum 10 accounts at once';
+            return;
+        }
+        const row = document.createElement('div');
+        row.className = 'account-add-row';
+        row.style.cssText = 'display:grid; grid-template-columns:1fr 90px 120px 36px; gap:8px; margin-bottom:8px;';
+        row.innerHTML = `
+            <input type="text" name="names[]" class="form-control"
+                   placeholder="e.g. Savings account…" autocomplete="off" />
+            <select name="currencies[]" class="form-control">
+                <option value="GBP">£ GBP</option>
+                <option value="EUR">€ EUR</option>
+                <option value="USD">$ USD</option>
+            </select>
+            <select name="types[]" class="form-control">
+                <option value="savings">💰 Savings</option>
+                <option value="investment">📈 Investment</option>
+                <option value="property">🏠 Property</option>
+                <option value="pension">🏦 Pension</option>
+                <option value="debt">💳 Debt</option>
+                <option value="asset">🚗 Asset</option>
+                <option value="other">📁 Other</option>
+            </select>
+            <button type="button" onclick="this.closest('.account-add-row').remove()"
+                style="background:none;border:1px solid var(--border);color:var(--muted);width:36px;height:40px;cursor:pointer;font-size:16px;">
+                ×
+            </button>
+        `;
+        container.appendChild(row);
+        if (container.querySelectorAll('.account-add-row').length >= MAX_ROWS) {
+            addBtn.style.opacity = '0.4';
+            addBtn.style.cursor = 'not-allowed';
+        }
+    });
+}
+</script>
+{% endblock %}

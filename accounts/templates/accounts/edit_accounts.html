@@ -1,0 +1,223 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Accounts" %} — Vault{% endblock %}
+{% block topbar_title %}{% trans "Edit Accounts" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .edit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    @media (max-width: 768px) {
+        .edit-grid { grid-template-columns: 1fr; }
+    }
+    .account-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 0;
+        border-bottom: 1px solid rgba(214,208,196,0.5);
+        gap: 12px;
+    }
+    .account-row:last-child { border-bottom: none; }
+    .account-row-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+    .empty-accounts {
+        padding: 32px 0;
+        color: var(--muted);
+        font-size: 14px;
+        text-align: center;
+    }
+    .add-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-heading">{% trans "Edit Accounts" %}</h1>
+<p class="page-sub">{% trans "Add new savings accounts or remove existing ones." %}</p>
+
+<div class="edit-grid">
+
+    <!-- ── EXISTING ACCOUNTS ── -->
+    <div class="card">
+        <div class="card-title">{% trans "Your Accounts" %} ({{ accounts|length }})</div>
+
+        {% if accounts %}
+            {% for account in accounts %}
+            <div class="account-row">
+                <div class="account-row-name">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%;
+                                 background: hsl({{ forloop.counter0|add:forloop.counter0|add:forloop.counter0|add:"40" }}, 55%, 45%);
+                                 flex-shrink:0;"></span>
+                    {{ account.name }}
+                    <span class="native-badge" style="margin-left:8px;">{{ account.currency }}</span>
+                </div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <form method="post" action="/update_account_currency/{{ account.id }}/" style="display:flex; gap:6px; align-items:center;">
+                        {% csrf_token %}
+                        <select name="currency" class="form-control" style="padding:4px 8px; font-size:12px; width:auto;">
+                            <option value="GBP" {% if account.currency == "GBP" %}selected{% endif %}>£ GBP</option>
+                            <option value="EUR" {% if account.currency == "EUR" %}selected{% endif %}>€ EUR</option>
+                            <option value="USD" {% if account.currency == "USD" %}selected{% endif %}>$ USD</option>
+                        </select>
+                        <button type="submit" class="btn btn-ghost btn-sm">{% trans "Update" %}</button>
+                    </form>
+                    <button class="btn btn-danger btn-sm delete-btn"
+                            data-account-id="{{ account.id }}"
+                            data-account-name="{{ account.name }}">
+                        {% trans "Delete" %}
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-accounts">
+                {% trans "No accounts yet. Add your first one →" %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ── ADD ACCOUNT FORM ── -->
+    <div class="card">
+        <div class="card-title">{% trans "Add New Account" %}</div>
+        <form method="post" id="bulk-add-form">
+            {% csrf_token %}
+            <input type="hidden" name="bulk_add" value="1" />
+
+            <!-- Column headers -->
+            <div style="display:grid; grid-template-columns:1fr 120px 36px; gap:8px; margin-bottom:6px;">
+                <div class="form-label" style="margin:0;">{% trans "Account Name" %}</div>
+                <div class="form-label" style="margin:0;">{% trans "Currency" %}</div>
+                <div></div>
+            </div>
+
+            <div id="account-rows">
+                <!-- Row 1 (always shown) -->
+                <div class="account-add-row" style="display:grid; grid-template-columns:1fr 120px 36px; gap:8px; margin-bottom:8px;">
+                    <input type="text" name="names[]" class="form-control"
+                           placeholder="e.g. Monzo ISA…" autocomplete="off" />
+                    <select name="currencies[]" class="form-control">
+                        <option value="GBP">£ GBP</option>
+                        <option value="EUR">€ EUR</option>
+                        <option value="USD">$ USD</option>
+                    </select>
+                    <div></div>
+                </div>
+            </div>
+
+            <!-- Add row button -->
+            <button type="button" id="add-row-btn" style="
+                background: none;
+                border: 1px dashed var(--border);
+                color: var(--muted);
+                padding: 7px 14px;
+                font-family: 'Instrument Sans', sans-serif;
+                font-size: 13px;
+                cursor: pointer;
+                width: 100%;
+                text-align: left;
+                margin-bottom: 14px;
+                transition: all 0.2s;
+            ">+ {% trans "Add another account" %}</button>
+
+            <button type="submit" class="btn btn-primary">
+                {% trans "Save accounts" %} →
+            </button>
+        </form>
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <a href="{% url 'myaccounts' %}" class="btn btn-ghost">
+                ← {% trans "Back to My Accounts" %}
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ── Bulk add rows ──
+document.addEventListener("DOMContentLoaded", function () {
+    const MAX_ROWS = 10;
+    const container = document.getElementById('account-rows');
+    const addBtn = document.getElementById('add-row-btn');
+
+    addBtn.addEventListener('click', function () {
+        const rows = container.querySelectorAll('.account-add-row');
+        if (rows.length >= MAX_ROWS) {
+            addBtn.textContent = '✓ Maximum 10 accounts at once';
+            addBtn.style.color = 'var(--muted)';
+            return;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'account-add-row';
+        row.style.cssText = 'display:grid; grid-template-columns:1fr 120px 36px; gap:8px; margin-bottom:8px;';
+        row.innerHTML = `
+            <input type="text" name="names[]" class="form-control"
+                   placeholder="e.g. Savings account…" autocomplete="off" />
+            <select name="currencies[]" class="form-control">
+                <option value="GBP">£ GBP</option>
+                <option value="EUR">€ EUR</option>
+                <option value="USD">$ USD</option>
+            </select>
+            <button type="button" onclick="this.closest('.account-add-row').remove()" style="
+                background: none;
+                border: 1px solid var(--border);
+                color: var(--muted);
+                width: 36px; height: 40px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: all 0.15s;
+            " onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+               onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">×</button>
+        `;
+        container.appendChild(row);
+
+        if (container.querySelectorAll('.account-add-row').length >= MAX_ROWS) {
+            addBtn.style.opacity = '0.4';
+            addBtn.style.cursor = 'not-allowed';
+        }
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.accountId;
+            const name = this.dataset.accountName;
+
+            if (confirm(`{% trans "Delete" %} "${name}"? {% trans "This will permanently remove all its balance history." %}`)) {
+                fetch(`/delete_account/${id}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('{% trans "Error deleting account." %}');
+                    }
+                })
+                .catch(e => console.error(e));
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

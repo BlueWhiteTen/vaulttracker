@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Savings Tracker{% endblock %}</title>
+    {% load static %}
+    {% load i18n %}
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0e0e0e;
+            --paper: #f5f2eb;
+            --cream: #ede9df;
+            --gold: #c9a84c;
+            --gold-light: #f5ecd0;
+            --green: #1a6b4a;
+            --green-light: #e8f4ef;
+            --red: #8b2e2e;
+            --red-light: #f5e8e8;
+            --muted: #7a7369;
+            --border: #d6d0c4;
+            --card: #faf8f4;
+            --sidebar-w: 240px;
+        }
+        body.dark-mode {
+            --ink: #e8e4dc;
+            --paper: #1e1e1e;
+            --cream: #252525;
+            --gold-light: #2a2415;
+            --green-light: #0d2018;
+            --red-light: #2a0d0d;
+            --muted: #9a9490;
+            --border: #333333;
+            --card: #272727;
+        }
+        body.dark-mode .topbar {
+            background: #0a0a0a;
+        }
+        body.dark-mode .sidebar {
+            background: #0a0a0a;
+        }
+
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Instrument Sans', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: var(--ink);
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            padding: 28px 24px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .brand-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: 26px;
+            color: #fff;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+        .brand-name span { color: var(--gold); }
+        .brand-tagline {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-top: 4px;
+        }
+
+        .sidebar-section {
+            padding: 20px 16px 8px;
+        }
+        .sidebar-section-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+            padding: 0 8px;
+            margin-bottom: 6px;
+        }
+
+        .sidebar nav ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sidebar nav ul li a,
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .sidebar nav ul li a:hover,
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.07);
+            color: #fff;
+        }
+        .sidebar nav ul li a.active {
+            background: rgba(201,168,76,0.15);
+            color: var(--gold);
+        }
+
+        .logout-form { margin: 0; }
+        .logout-form button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 12px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s;
+            text-align: left;
+        }
+        .logout-form button:hover {
+            background: rgba(139,46,46,0.2);
+            color: #e07070;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin: 12px 16px;
+        }
+
+        /* Settings section */
+        .settings-block {
+            padding: 12px 16px;
+        }
+        .settings-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+            margin-bottom: 6px;
+            padding: 0 4px;
+        }
+        .settings-select {
+            width: 100%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            padding: 7px 10px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 12px;
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .settings-select option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .settings-select:focus { border-color: var(--gold); }
+
+        .user-badge {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .user-badge-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+        }
+        .user-avatar {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: rgba(201,168,76,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gold);
+            flex-shrink: 0;
+        }
+        .user-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* ── MAIN ── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow-x: hidden;
+        }
+
+        /* ── HAMBURGER ── */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 200;
+        }
+        .hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--gold);
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+        .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+        }
+        .sidebar-overlay.show { display: block; }
+
+        .topbar {
+            background: var(--ink);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 0 36px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .topbar-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 20px;
+            letter-spacing: -0.3px;
+            color: #fff;
+        }
+        .topbar-right {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .page-content {
+            padding: 40px 36px;
+            flex: 1;
+            min-width: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        footer {
+            padding: 20px 36px;
+            border-top: 1px solid var(--border);
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+        }
+
+        /* ── SHARED COMPONENTS ── */
+        .page-heading {
+            font-family: 'DM Serif Display', serif;
+            font-size: 32px;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+        .page-sub {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 36px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 18px;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .data-table th {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-align: left;
+            padding: 0 12px 12px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 400;
+        }
+        .data-table td {
+            padding: 13px 12px;
+            border-bottom: 1px solid rgba(214,208,196,0.5);
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tfoot td {
+            padding: 14px 12px;
+            border-top: 2px solid var(--ink);
+            border-bottom: none;
+            font-weight: 600;
+        }
+        .mono { font-family: 'DM Mono', monospace; font-size: 13px; }
+
+        /* KPI grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            margin-bottom: 28px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .kpi {
+            background: var(--card);
+            padding: 24px 20px;
+        }
+        .kpi-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-family: 'DM Serif Display', serif;
+            font-size: 26px;
+            letter-spacing: -0.3px;
+            line-height: 1;
+        }
+        .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        .text-green { color: var(--green); }
+        .text-red { color: var(--red); }
+        .text-gold { color: var(--gold); }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.15s, transform 0.1s;
+            letter-spacing: 0.03em;
+            text-decoration: none;
+        }
+        .btn:active { transform: scale(0.99); }
+        .btn-primary { background: var(--green); color: #fff; }
+        .btn-primary:hover { opacity: 0.88; }
+        .btn-gold { background: var(--gold); color: var(--ink); }
+        .btn-gold:hover { opacity: 0.88; }
+        .btn-ghost {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--ink);
+        }
+        .btn-ghost:hover { border-color: var(--ink); }
+        .btn-danger { background: var(--red); color: #fff; font-size: 12px; padding: 6px 12px; }
+        .btn-danger:hover { opacity: 0.85; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* Forms */
+        .form-group { margin-bottom: 18px; }
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        .form-control {
+            width: 100%;
+            background: var(--paper);
+            border: 1px solid var(--border);
+            color: var(--ink);
+            padding: 10px 14px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            border-radius: 0;
+        }
+        .form-control:focus { border-color: var(--gold); }
+        input.form-control, select.form-control, textarea.form-control {
+            appearance: none;
+        }
+
+        /* Alert / messages */
+        .alert {
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            border-left: 3px solid;
+        }
+        .alert-success { background: var(--green-light); border-color: var(--green); color: var(--green); }
+        .alert-error { background: var(--red-light); border-color: var(--red); color: var(--red); }
+
+        /* Account dot */
+        .account-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .hamburger { display: flex; }
+            .sidebar {
+                position: fixed !important;
+                top: 0; left: 0;
+                width: 260px !important;
+                height: 100vh !important;
+                z-index: 160;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                overflow-y: auto;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .main { width: 100%; }
+            .topbar { padding: 0 16px; position: sticky; top: 0; z-index: 100; }
+            .page-content { padding: 24px 16px; }
+            .kpi-grid { grid-template-columns: 1fr 1fr !important; }
+            .accounts-grid { grid-template-columns: 1fr !important; }
+            .detail-grid { grid-template-columns: 1fr !important; }
+            .edit-grid { grid-template-columns: 1fr !important; }
+            .update-form { grid-template-columns: 1fr !important; }
+            .data-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .data-table th, .data-table td { padding: 10px 6px; font-size: 12px; }
+            .hide-mobile { display: none !important; }
+            .kpi-grid { grid-template-columns: 1fr 1fr !important; }
+            .kpi-value { font-size: 18px !important; }
+            .kpi { padding: 16px 12px !important; }
+            .inline-edit-form { flex-direction: column; align-items: flex-start; }
+            .inline-edit-form input { width: 100% !important; }
+        }
+
+    </style>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta name="theme-color" content="#0e0e0e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vault">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    {% block extra_head %}{% endblock %}
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js');
+            });
+        }
+    </script>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-name">Va<span>u</span>lt</div>
+        <div class="brand-tagline">Savings Tracker</div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="sidebar-section">
+        <div class="sidebar-section-label">{% trans "Navigate" %}</div>
+        <nav>
+            <ul>
+                <li><a href="{% url 'myaccounts' %}" class="{% if request.resolver_match.url_name == 'myaccounts' %}active{% endif %}">
+                    <span>📊</span> {% trans "Dashboard" %}
+                </a></li>
+                <li><a href="{% url 'edit_accounts' %}" class="{% if request.resolver_match.url_name == 'edit_accounts' %}active{% endif %}">
+                    <span>✏️</span> {% trans "Edit Accounts" %}
+                </a></li>
+                <li><a href="{% url 'profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    <span>👤</span> {% trans "Profile" %}
+                </a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="settings-block">
+        <div class="settings-label">{% trans "Language" %}</div>
+        <form action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <select name="language" class="settings-select" onchange="this.form.submit()">
+                <option value="en" {% if request.LANGUAGE_CODE == 'en' %}selected{% endif %}>🇬🇧 English</option>
+                <option value="el" {% if request.LANGUAGE_CODE == 'el' %}selected{% endif %}>🇬🇷 Ελληνικά</option>
+            </select>
+        </form>
+
+        <div class="settings-label">{% trans "Currency" %}</div>
+        <form method="post" action="{% url 'set_currency' %}">
+            {% csrf_token %}
+            <select name="currency" class="settings-select" onchange="this.form.submit()">
+                <option value="GBP" {% if request.session.currency == "GBP" %}selected{% endif %}>£ GBP</option>
+                <option value="EUR" {% if request.session.currency == "EUR" %}selected{% endif %}>€ EUR</option>
+                <option value="USD" {% if request.session.currency == "USD" %}selected{% endif %}>$ USD</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="settings-block">
+        <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit">
+                <span>🚪</span> {% trans "Logout" %}
+            </button>
+        </form>
+    </div>
+
+    <div class="user-badge">
+        <div class="user-badge-inner">
+            <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
+            <div class="user-name">{{ user.username }}</div>
+        </div>
+    </div>
+
+    {% else %}
+
+    <div class="sidebar-section">
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}"><span>🏠</span> {% trans "Home" %}</a></li>
+                <li><a href="{% url 'register' %}"><span>✨</span> {% trans "Register" %}</a></li>
+                <li><a href="{% url 'login' %}"><span>🔑</span> {% trans "Login" %}</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="settings-block">
+        <div class="settings-label">{% trans "Language" %}</div>
+        <form action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <select name="language" class="settings-select" onchange="this.form.submit()">
+                <option value="en" {% if request.LANGUAGE_CODE == 'en' %}selected{% endif %}>🇬🇧 English</option>
+                <option value="el" {% if request.LANGUAGE_CODE == 'el' %}selected{% endif %}>🇬🇷 Ελληνικά</option>
+            </select>
+        </form>
+    </div>
+
+    {% endif %}
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+    <div class="topbar">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="topbar-title">{% block topbar_title %}{% trans "My Savings Tracker" %}{% endblock %}</div>
+        </div>
+        <div class="topbar-right" style="display:flex; align-items:center; gap:16px;">
+            <button id="darkModeBtn" onclick="toggleDark()" style="
+                background:none; border:1px solid rgba(255,255,255,0.2);
+                color:rgba(255,255,255,0.6); padding:4px 10px;
+                font-size:12px; cursor:pointer; border-radius:4px;
+                font-family:'DM Mono',monospace; transition:all 0.2s;
+            ">🌙</button>
+            {% now "d M Y" %}
+        </div>
+    </div>
+
+    <div class="page-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        &copy; {% now "Y" %} Vault — {% trans "Personal Savings Tracker" %}
+    </footer>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+
+<script>
+function toggleDark() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', isDark ? '1' : '0');
+    document.getElementById('darkModeBtn').textContent = isDark ? '☀️' : '🌙';
+}
+
+// Apply on load
+(function() {
+    if (localStorage.getItem('darkMode') === '1') {
+        document.body.classList.add('dark-mode');
+        const btn = document.getElementById('darkModeBtn');
+        if (btn) btn.textContent = '☀️';
+    }
+})();
+</script>
+
+<script>
+const hamburger = document.getElementById('hamburgerBtn');
+const sidebar = document.querySelector('.sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+
+function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+    hamburger.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+    hamburger.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+hamburger.addEventListener('click', function () {
+    if (sidebar.classList.contains('open')) {
+        closeSidebar();
+    } else {
+        openSidebar();
+    }
+});
+
+overlay.addEventListener('click', closeSidebar);
+
+// Close sidebar when a nav link is clicked on mobile
+document.querySelectorAll('.sidebar nav a, .sidebar .logout-form button').forEach(el => {
+    el.addEventListener('click', closeSidebar);
+});
+</script>
+</body>
+</html>

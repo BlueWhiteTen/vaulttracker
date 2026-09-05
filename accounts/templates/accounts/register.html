@@ -1,0 +1,165 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Register" %} — Vault</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --ink: #0e0e0e; --gold: #c9a84c; --green: #1a6b4a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Instrument Sans', sans-serif;
+            background: var(--ink);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        .bg-glow {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 10% 90%, rgba(201,168,76,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 70% at 90% 10%, rgba(26,107,74,0.07) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .bg-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+        }
+        .card {
+            position: relative;
+            width: 440px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 44px 40px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.09);
+            animation: fadeUp 0.5s ease both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo { font-family: 'DM Serif Display', serif; font-size: 32px; color: #fff; letter-spacing: -1px; margin-bottom: 3px; }
+        .logo span { color: var(--gold); }
+        .tagline { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 30px; }
+
+        /* Override Django form rendering */
+        .django-form p { margin-bottom: 16px; }
+        .django-form p label {
+            display: block;
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 6px;
+        }
+        .django-form p input {
+            width: 100%;
+            background: rgba(255,255,255,0.055);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 11px 14px;
+            font-family: 'Instrument Sans', sans-serif; font-size: 14px;
+            outline: none; transition: border-color 0.2s;
+        }
+        .django-form p input:focus { border-color: var(--gold); }
+        .django-form p input::placeholder { color: rgba(255,255,255,0.18); }
+        .django-form ul { list-style: none; margin-top: 5px; }
+        .django-form ul li { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 3px; }
+        .errorlist li { color: #e07070 !important; }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--gold); color: var(--ink);
+            border: none; padding: 13px;
+            font-family: 'Instrument Sans', sans-serif; font-size: 14px; font-weight: 600;
+            cursor: pointer; margin-top: 6px; letter-spacing: 0.04em; transition: opacity 0.15s;
+        }
+        .btn-submit:hover { opacity: 0.9; }
+        .bottom-link { margin-top: 20px; text-align: center; font-size: 13px; color: rgba(255,255,255,0.3); }
+        .bottom-link a { color: var(--gold); text-decoration: none; }
+        .bottom-link a:hover { text-decoration: underline; }
+        input, select, textarea {
+            color: #fff !important;
+            background: rgba(255,255,255,0.055) !important;
+            -webkit-text-fill-color: #fff !important;
+        }
+
+        input::placeholder {
+            color: rgba(255,255,255,0.5) !important;
+            -webkit-text-fill-color: rgba(255,255,255,0.5) !important;
+        }
+
+        /* Fix autofill background override */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #fff !important;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(30,30,30,0.9) inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        label {
+            color: rgba(255,255,255,.9) !important;
+        }
+
+        p, a {
+            color: rgba(255,255,255,0.5);
+        }
+        .lang-select option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+<div class="card">
+    <div class="logo">Va<span>u</span>lt</div>
+    <div class="tagline">{% trans "Create your account" %}</div>
+
+    <form method="post" class="django-form">
+        {% csrf_token %}
+        <p>
+            <label>Email address</label>
+            <input type="email" name="email" placeholder="you@example.com"
+                   value="{{ request.POST.email }}" required />
+        </p>
+        {{ form.as_p }}
+        <button type="submit" class="btn-submit">{% trans "Create account" %} →</button>
+    </form>
+
+    <div class="bottom-link">
+        {% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Sign in" %}</a>
+    </div>
+    <!-- Language switcher -->
+<div style="text-align: center; margin-top: 16px; position: relative; z-index: 100;">
+    <form action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <select name="language" class="lang-select" onchange="this.form.submit()" style="
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7);
+            padding: 8px 12px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 12px;
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+        ">
+            <option value="en" {% if request.LANGUAGE_CODE == 'en' %}selected{% endif %} style="background:#1a1a1a; color:#fff;">🇬🇧 English</option>
+            <option value="el" {% if request.LANGUAGE_CODE == 'el' %}selected{% endif %} style="background:#1a1a1a; color:#fff;">🇬🇷 Ελληνικά</option>
+        </select>
+    </form>
+</div>
+</div>
+</body>
+</html>

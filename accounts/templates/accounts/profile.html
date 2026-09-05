@@ -1,0 +1,240 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Profile" %} — Vault{% endblock %}
+{% block topbar_title %}{% trans "Profile" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        max-width: 900px;
+    }
+    .profile-grid .full { grid-column: 1 / -1; }
+    .form-group { margin-bottom: 16px; }
+    .toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .toggle {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: var(--border);
+        border-radius: 24px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .toggle-slider:before {
+        content: "";
+        position: absolute;
+        width: 18px; height: 18px;
+        left: 3px; top: 3px;
+        background: #fff;
+        border-radius: 50%;
+        transition: 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--green); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+    .toggle-label { font-size: 14px; color: var(--ink); }
+    .section-divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 8px 0 20px;
+    }
+    @media (max-width: 768px) {
+        .profile-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-heading">{% trans "Profile" %}</h1>
+<p class="page-sub">{% trans "Manage your account settings and preferences." %}</p>
+
+<div class="profile-grid">
+
+    <!-- ── PREFERENCES ── -->
+    <div class="card">
+        <div class="card-title">{% trans "Preferences" %}</div>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_profile" />
+
+            <div class="form-group">
+                <label class="form-label">{% trans "Email address" %}</label>
+                <input type="email" name="email" class="form-control"
+                       value="{{ profile.email }}"
+                       placeholder="you@example.com" />
+                <div style="font-size:11px; color:var(--muted); margin-top:4px;">{% trans "Used for reminders only" %}</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{% trans "Language" %}</label>
+                <select name="language" class="form-control">
+                    <option value="en" {% if profile.language == "en" %}selected{% endif %}>🇬🇧 English</option>
+                    <option value="el" {% if profile.language == "el" %}selected{% endif %}>🇬🇷 Ελληνικά</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{% trans "Display currency" %}</label>
+                <select name="currency" class="form-control">
+                    <option value="GBP" {% if profile.currency == "GBP" %}selected{% endif %}>£ GBP</option>
+                    <option value="EUR" {% if profile.currency == "EUR" %}selected{% endif %}>€ EUR</option>
+                    <option value="USD" {% if profile.currency == "USD" %}selected{% endif %}>$ USD</option>
+                </select>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div class="toggle-wrap">
+                <label class="toggle">
+                    <input type="checkbox" name="email_reminders" id="reminderToggle"
+                           {% if profile.email_reminders %}checked{% endif %} />
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">{% trans "Monthly balance reminder" %}</span>
+            </div>
+
+            <div class="toggle-wrap">
+                <label class="toggle">
+                    <input type="checkbox" name="privacy_mode" id="privacyToggle"
+                           {% if profile.privacy_mode %}checked{% endif %} />
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">{% trans "Privacy mode" %}</span>
+            </div>
+            <div style="font-size:11px; color:var(--muted); margin-bottom:16px; margin-left:56px;">
+                {% trans "Hides all data on the dashboard until you choose to reveal it" %}
+            </div>
+
+            <div class="toggle-wrap">
+                <label class="toggle">
+                    <input type="checkbox" name="show_icons" id="showIconsToggle"
+                           {% if profile.show_icons %}checked{% endif %} />
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">{% trans "Show account icons" %}</span>
+            </div>
+            <div style="font-size:11px; color:var(--muted); margin-bottom:16px; margin-left:56px;">
+                {% trans "Show emoji icons next to account names" %}
+            </div>
+
+            <div class="form-group" id="reminderDayGroup" style="{% if not profile.email_reminders %}display:none;{% endif %}">
+                <label class="form-label">{% trans "Remind me on day" %}</label>
+                <select name="reminder_day" class="form-control">
+                    {% for i in reminder_days %}
+                    <option value="{{ i }}" {% if profile.reminder_day == i %}selected{% endif %}>
+                        {% if i == "last" %}{% trans "Last day of month" %}{% else %}{{ i }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div style="font-size:11px; color:var(--muted); margin-top:4px;">{% trans "of each month" %}</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">{% trans "Save preferences" %} →</button>
+        </form>
+    </div>
+
+    <!-- ── ACCOUNT SECURITY ── -->
+    <div class="card">
+        <div class="card-title">{% trans "Account" %}</div>
+
+        <div style="margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--border);">
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">{% trans "Change username" %}</div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_username" />
+                <div class="form-group">
+                    <label class="form-label">{% trans "New username" %}</label>
+                    <input type="text" name="username" class="form-control"
+                           value="{{ request.user.username }}" autocomplete="off" />
+                </div>
+                <button type="submit" class="btn btn-ghost">{% trans "Update username" %}</button>
+            </form>
+        </div>
+
+        <div>
+            <div style="font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">{% trans "Change password" %}</div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password" />
+                <div class="form-group">
+                    <label class="form-label">{% trans "Current password" %}</label>
+                    <input type="password" name="current_password" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{% trans "New password" %}</label>
+                    <input type="password" name="new_password" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{% trans "Confirm new password" %}</label>
+                    <input type="password" name="confirm_password" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary">{% trans "Change password" %} →</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── ACCOUNT INFO ── -->
+    <div class="card full">
+        <div class="card-title">{% trans "Account info" %}</div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border);">
+            <div style="background:var(--card); padding:16px 20px;">
+                <div style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">{% trans "Username" %}</div>
+                <div style="font-size:15px; font-weight:500;">{{ request.user.username }}</div>
+            </div>
+            <div style="background:var(--card); padding:16px 20px;">
+                <div style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">{% trans "Member since" %}</div>
+                <div style="font-size:15px; font-weight:500;">{{ request.user.date_joined|date:"d M Y" }}</div>
+            </div>
+            <div style="background:var(--card); padding:16px 20px;">
+                <div style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">{% trans "Total accounts" %}</div>
+                <div style="font-size:15px; font-weight:500;">{{ request.user.account_set.count }}</div>
+            </div>
+            <div style="background:var(--card); padding:16px 20px;">
+                <div style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">{% trans "Last login" %}</div>
+                <div style="font-size:15px; font-weight:500;">
+                    {% if request.user.last_login %}{{ request.user.last_login|date:"d M Y, H:i" }}{% else %}—{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.getElementById('reminderToggle').addEventListener('change', function() {
+    document.getElementById('reminderDayGroup').style.display = this.checked ? 'block' : 'none';
+});
+</script>
+
+<!-- Buy me a coffee -->
+<div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+    <a href="https://buymeacoffee.com/vaulttracker" target="_blank" rel="noopener"
+       style="display:inline-flex; align-items:center; gap:8px; background:#FFDD00; color:#000;
+              padding:10px 20px; border-radius:50px; font-family:'Instrument Sans',sans-serif;
+              font-size:13px; font-weight:600; text-decoration:none;
+              box-shadow:0 4px 12px rgba(0,0,0,0.1); transition:transform 0.2s;"
+       onmouseover="this.style.transform='translateY(-2px)'"
+       onmouseout="this.style.transform=''">
+        ☕ {% trans "Buy me a coffee" %}
+    </a>
+    <p style="font-size:12px; color:var(--muted); margin-top:10px;">
+        {% trans "If you find Vault useful, a coffee keeps it running!" %}
+    </p>
+</div>
+
+{% endblock %}
